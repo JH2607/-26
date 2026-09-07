@@ -1,0 +1,2378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>AI 심문실 — 워들 & 꼬맨틀 챌린지</title>
+<style>
+  @font-face{
+    font-family: 'GyeongbokgungSumunjangTitle';
+    src: url('fonts/Sumunjang_TitleL.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face{
+    font-family: 'GyeongbokgungSumunjangTitle';
+    src: url('fonts/Sumunjang_TitleM.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face{
+    font-family: 'GyeongbokgungSumunjangTitle';
+    src: url('fonts/Sumunjang_TitleB.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  :root{
+    --bg:#0c0c0e;
+    --panel:#1a1a1d;
+    --panel-line:#333338;
+    --ink:#e9e6dc;
+    --ink-dim:#8c8a84;
+    --caution:#f2c14e;
+    --caution-dim:#7a6425;
+    --alert:#c0392b;
+    --spotlight:#fdf6e3;
+    --display: 'GyeongbokgungSumunjangTitle', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(253,246,227,0.06), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--display);
+    font-weight:500;
+    font-synthesis: none;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow-x:hidden;
+  }
+  .tape{
+    height:14px;
+    width:100%;
+    background: repeating-linear-gradient(45deg, var(--caution) 0 18px, #1a1a1a 18px 36px);
+    flex-shrink:0;
+    opacity:0.85;
+  }
+  header.casefile{
+    padding:18px 20px 10px;
+    border-bottom:1px solid var(--panel-line);
+    text-align:center;
+  }
+  .case-id{
+    font-size:11px;
+    font-weight:300;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+  }
+  .case-title{
+    font-size:22px;
+    font-weight:700;
+    margin:4px 0 2px;
+    letter-spacing:-0.01em;
+  }
+  .case-sub{
+    font-size:13px;
+    font-weight:300;
+    color:var(--ink-dim);
+  }
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:16px;
+    gap:14px;
+    max-width:520px;
+    width:100%;
+    margin:0 auto;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    padding:16px;
+  }
+  .panel h2{
+    font-size:12px;
+    letter-spacing:0.06em;
+    color:var(--caution);
+    margin:0 0 12px;
+    font-weight:700;
+  }
+  .stage-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .stage-btn{
+    flex:1;
+    padding:12px 8px;
+    background:#141416;
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    color:var(--ink-dim);
+    font-weight:500;
+    font-size:14px;
+    text-align:center;
+  }
+  .stage-btn.active{
+    border-color:var(--caution);
+    color:var(--caution);
+    background:#1f1a0d;
+    font-weight:700;
+  }
+  select, .select-fake{
+    width:100%;
+    background:#141416;
+    color:var(--ink);
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    padding:12px;
+    font-family:var(--display);
+    font-weight:500;
+    font-size:14px;
+    margin-bottom:10px;
+  }
+  .hint-note{
+    font-size:12px;
+    font-weight:300;
+    color:var(--ink-dim);
+    line-height:1.6;
+    margin-top:6px;
+  }
+  .btn{
+    display:block;
+    width:100%;
+    padding:14px;
+    border-radius:4px;
+    border:none;
+    font-family:var(--display);
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+  }
+  .btn-primary{ background:var(--caution); color:#141414; }
+  .btn-ghost{ background:transparent; color:var(--ink-dim); border:1px solid var(--panel-line); margin-top:8px;}
+  .btn-danger{ background:transparent; color:var(--alert); border:1px solid var(--alert); }
+  #game{ display:none; }
+  #game.on{ display:flex; flex-direction:column; gap:14px;}
+  .statusbar{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:0 2px;
+  }
+  .statusbar .label{ color:var(--ink-dim); font-size:10px; font-weight:300; letter-spacing:0.05em; display:block;}
+  .statusbar .val{ font-size:18px; font-weight:700;}
+  .val.warn{ color:var(--alert); }
+  .meter-wrap{
+    padding: 4px 2px 2px;
+  }
+  .meter-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+  }
+  .meter-label .meter-title{
+    font-size:11px;
+    font-weight:300;
+    color:var(--ink-dim);
+    letter-spacing:0.05em;
+  }
+  .meter-label .meter-pct{
+    font-size:20px;
+    font-weight:700;
+    color:var(--caution);
+  }
+  .meter-track{
+    background:#141416;
+    border:1px solid var(--panel-line);
+    border-radius:999px;
+    height:12px;
+    overflow:hidden;
+  }
+  .meter-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--caution-dim), var(--caution));
+    width:0%;
+    transition: width 0.25s ease;
+  }
+  .guess-form{ display:flex; gap:8px; }
+  .guess-form input{
+    flex:1;
+    background:#141416;
+    border:1px solid var(--panel-line);
+    color:var(--ink);
+    border-radius:4px;
+    padding:14px;
+    font-size:16px;
+    font-family:var(--display);
+    font-weight:500;
+  }
+  .guess-form input:focus{ outline:2px solid var(--caution); border-color:var(--caution);}
+  .guess-form button{
+    background:var(--caution);
+    border:none;
+    color:#141414;
+    font-family:var(--display);
+    font-weight:700;
+    border-radius:4px;
+    padding:0 18px;
+    font-size:14px;
+    transition: filter 0.08s ease;
+  }
+  .guess-form button.pressed{
+    filter: brightness(0.75);
+  }
+  .confirm-panel{
+    text-align:center;
+  }
+  .confirm-panel .confirm-msg{
+    font-weight:500;
+    margin-bottom:12px;
+    font-size:14px;
+  }
+  .hint-flash{
+    color: var(--alert) !important;
+  }
+  .actions-row{ display:flex; gap:8px; }
+  .actions-row button{ flex:1; }
+  .btn-hint{
+    background:transparent;
+    border:1px dashed var(--caution-dim);
+    color:var(--caution);
+    padding:10px;
+    border-radius:4px;
+    font-weight:500;
+    font-size:13px;
+  }
+  .transcript{
+    font-size:19px;
+    font-weight:500;
+  }
+  .t-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    height:44px;
+    padding:0 4px;
+    border-bottom:1px solid #232326;
+  }
+  .t-row:first-child{ color:var(--ink-dim); font-size:13px; font-weight:300; border-bottom:1px solid var(--panel-line); height:32px;}
+  .t-row .word{
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:68%;
+  }
+  .t-row .score{ font-weight:700; }
+  .t-row.hit .word, .t-row.hit .score{ color:var(--caution); }
+  .t-row.hint-row .word{ color:#8ab0d4; font-style:italic; }
+  .empty-transcript{ color:var(--ink-dim); font-size:12px; font-weight:300; padding:8px 4px;}
+  #end{ display:none; text-align:center; }
+  #end.on{ display:block; }
+  .grade{
+    font-size:64px;
+    font-weight:700;
+    line-height:1;
+    margin:6px 0;
+  }
+  .grade.S{ color:var(--caution); }
+  .grade.A{ color:#9fd3a0; }
+  .grade.B{ color:#8ab0d4; }
+  .grade.F{ color:var(--alert); }
+  .score-big{ font-size:20px; font-weight:500; color:var(--ink-dim); margin-bottom:14px;}
+  .breakdown{ text-align:left; font-size:16px; font-weight:300; color:var(--ink-dim); margin:14px 0; line-height:2.1;}
+  .breakdown b{ color:var(--ink); font-weight:700; }
+  .reward{
+    background:#141416;
+    border:1px solid var(--caution-dim);
+    border-radius:4px;
+    padding:14px;
+    margin:14px 0;
+    font-weight:500;
+  }
+  footer{
+    text-align:center;
+    padding:14px;
+    font-size:10px;
+    font-weight:300;
+    color:var(--ink-dim);
+    letter-spacing:0.04em;
+  }
+
+  @media (min-width: 900px){
+    main{ max-width: 820px; padding: 32px 24px; gap: 20px; }
+    .case-title{ font-size: 30px; }
+    .case-sub{ font-size: 15px; }
+    header.casefile{ padding: 26px 32px 14px; }
+    .panel{ padding: 24px; }
+    .meter-label .meter-pct{ font-size: 28px; }
+    .meter-label .meter-title{ font-size: 13px; }
+    .meter-track{ height: 16px; }
+    .guess-form input{ font-size: 18px; padding: 16px; }
+    .guess-form button{ font-size: 16px; padding: 0 26px; }
+    .stage-btn{ font-size: 16px; padding: 14px 10px; }
+    .btn{ font-size: 16px; padding: 16px; }
+    .transcript{ font-size: 15px; }
+    .grade{ font-size: 84px; }
+    .score-big{ font-size: 24px; }
+    .breakdown{ font-size: 15px; }
+    .statusbar .val{ font-size: 22px; }
+    #transcriptBody{ max-height: 360px; overflow-y: auto; }
+  }
+
+  .player-fields{ margin-top: 12px; display:none; }
+  .player-fields.on{ display:block; }
+  .field-grid{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:8px;
+  }
+  .field-grid label{
+    font-size:11px;
+    font-weight:300;
+    color:var(--ink-dim);
+    letter-spacing:0.04em;
+  }
+  .field-grid input, .field-grid select{
+    width:100%;
+    background:#141416;
+    color:var(--ink);
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    padding:12px;
+    font-family:var(--display);
+    font-weight:500;
+    font-size:14px;
+    margin-bottom:0;
+  }
+  .nav-row{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  .nav-row .btn{ flex:1; }
+  #rank{ display:none; }
+  #rank.on{ display:block; }
+  .rank-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .rank-meta{
+    font-size:12px;
+    font-weight:300;
+    color:var(--ink-dim);
+    margin: 0 0 12px;
+    line-height:1.6;
+  }
+  .rank-table-wrap{ overflow-x:auto; }
+  .rank-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    font-weight:500;
+  }
+  .rank-table th{
+    font-weight:300;
+    color:var(--ink-dim);
+    text-align:left;
+    padding:8px 6px;
+    border-bottom:1px solid var(--panel-line);
+    font-size:12px;
+  }
+  .rank-table td{
+    padding:10px 6px;
+    border-bottom:1px solid #232326;
+  }
+  .rank-table .pos{ color:var(--caution); font-weight:700; width:2.2em; }
+  .rank-table .num{ font-weight:700; }
+  .rank-empty{
+    color:var(--ink-dim);
+    font-weight:300;
+    font-size:13px;
+    padding:16px 4px;
+  }
+  .rank-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .rank-actions .btn, .rank-actions .btn-hint{ flex:1; min-width:120px; text-align:center; }
+  .saved-note{
+    font-size:13px;
+    font-weight:500;
+    color:var(--caution);
+    margin: 8px 0 12px;
+  }
+  .reset-panel{
+    display:none;
+    margin-top:12px;
+    padding:14px;
+    border:1px dashed var(--alert);
+    border-radius:4px;
+  }
+  .reset-panel.on{ display:block; }
+  .reset-panel .confirm-msg{ margin-bottom:10px; }
+  .reset-panel input{
+    width:100%;
+    background:#141416;
+    color:var(--ink);
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    padding:12px;
+    font-family:var(--display);
+    font-weight:500;
+    font-size:14px;
+    margin-bottom:10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="tape"></div>
+
+<header class="casefile">
+  <div class="case-id">CASE FILE // 정보인의 날 — AI 검증 프로토콜</div>
+  <div class="case-title">AI 심문실</div>
+  <div class="case-sub">폭주 직전의 AI, 그 마음속 단어를 추적하십시오.</div>
+</header>
+
+<main>
+
+  <section class="panel" id="setup">
+    <h2>입장 // BRIEFING</h2>
+
+    <div class="player-fields on" id="playerFields">
+      <label class="hint-note">랭킹 기록용 정보 — 입력 후 워밍업이 시작됩니다</label>
+      <div class="field-grid">
+        <label for="playerName">이름</label>
+        <input type="text" id="playerName" placeholder="예: 김고대" maxlength="20" autocomplete="off" />
+        <label for="playerDept">학과</label>
+        <select id="playerDept">
+          <option value="">학과 선택</option>
+          <option>인공지능학과</option>
+          <option>컴퓨터학과</option>
+          <option>데이터과학과</option>
+          <option>정보보호학부</option>
+          <option>사이버국방학과</option>
+          <option>전기전자공학부</option>
+          <option>경영학과</option>
+          <option>경제학과</option>
+          <option>심리학과</option>
+          <option>수학과</option>
+          <option>통계학과</option>
+          <option>기타</option>
+        </select>
+        <input type="text" id="playerDeptEtc" placeholder="학과 직접 입력" maxlength="30" style="display:none;" />
+        <label for="playerYear">학년</label>
+        <select id="playerYear">
+          <option value="">학년 선택</option>
+          <option>1학년</option>
+          <option>2학년</option>
+          <option>3학년</option>
+          <option>4학년</option>
+          <option>대학원</option>
+          <option>기타</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="hint-note" id="setupNote"></div>
+
+    <button class="btn btn-primary" id="startBtn" style="margin-top:14px;">워밍업 시작</button>
+    <div class="nav-row">
+      <button type="button" class="btn btn-ghost" id="openRankBtn">🏆 랭킹 보기</button>
+    </div>
+  </section>
+
+  <section id="game">
+    <div class="statusbar">
+      <div><span class="label">STAGE</span><span class="val" id="stageLabel">1단계</span></div>
+      <div><span class="label">단어</span><span class="val" id="wordNoVal">-</span></div>
+      <div><span class="label">TIME</span><span class="val" id="timeVal">00:00</span></div>
+      <div><span class="label">시도</span><span class="val" id="triesVal">0</span></div>
+      <div><span class="label">힌트</span><span class="val" id="hintsVal">0</span></div>
+    </div>
+
+    <div class="meter-wrap">
+      <div class="meter-label">
+        <span class="meter-title">최고 유사도</span>
+        <span class="meter-pct" id="bestPct">0%</span>
+      </div>
+      <div class="meter-track">
+        <div class="meter-fill" id="meterFill"></div>
+      </div>
+    </div>
+
+    <div class="guess-form">
+      <input type="text" id="guessInput" placeholder="단어를 검색하십시오" autocomplete="off" />
+      <button type="button" id="searchBtn">검색</button>
+    </div>
+
+    <div class="actions-row">
+      <button type="button" class="btn-hint" id="hintBtn">🔦 힌트 요청 (-60점)</button>
+      <button type="button" class="btn-hint" id="giveupBtn" style="border-color:var(--alert); color:var(--alert);">🚩 포기</button>
+    </div>
+
+    <div class="panel confirm-panel" id="giveupConfirm" style="display:none;">
+      <div class="confirm-msg">정말 포기하시겠습니까?</div>
+      <div class="actions-row">
+        <button type="button" class="btn-hint" id="giveupYes" style="border-color:var(--alert); color:var(--alert);">예, 포기합니다</button>
+        <button type="button" class="btn-hint" id="giveupNo">아니오, 계속할게요</button>
+      </div>
+    </div>
+
+    <div class="panel transcript">
+      <h2>심문 기록 // TRANSCRIPT</h2>
+      <div class="t-row"><span>단어</span><span>유사도</span></div>
+      <div id="transcriptBody">
+        <div class="empty-transcript">아직 검색한 단어가 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="end">
+    <h2 id="endHeader">// 심문 종료</h2>
+    <div class="grade" id="gradeChar">-</div>
+    <div class="score-big" id="scoreLine">SCORE 0</div>
+    <div class="breakdown" id="breakdown"></div>
+    <div class="reward" id="rewardLine"></div>
+    <div class="saved-note" id="rankSavedNote"></div>
+    <button class="btn btn-primary" id="continueBtn" style="display:none;">랭킹전 시작</button>
+    <button class="btn btn-primary" id="viewRankAfterBtn" style="display:none;">🏆 랭킹 확인</button>
+    <button class="btn btn-ghost" id="nextBtn">처음으로</button>
+  </section>
+
+  <section class="panel" id="rank">
+    <h2>랭킹 보드 // LEADERBOARD</h2>
+    <p class="rank-meta" id="rankMeta">이 PC 브라우저에만 저장됩니다. JSON으로 백업하세요.</p>
+    <div class="rank-tabs">
+      <div class="stage-btn active" data-ranktab="person">개인별</div>
+      <div class="stage-btn" data-ranktab="dept">학과별</div>
+      <div class="stage-btn" data-ranktab="year">학년별</div>
+    </div>
+    <div class="rank-table-wrap" id="rankBody"></div>
+    <div class="rank-actions">
+      <button type="button" class="btn-hint" id="exportRankBtn">JSON 내보내기</button>
+      <button type="button" class="btn-hint" id="importRankBtn">JSON 가져오기</button>
+      <button type="button" class="btn-hint" id="clearRankBtn" style="border-color:var(--alert); color:var(--alert); cursor:pointer;">랭킹 리셋</button>
+    </div>
+    <div class="reset-panel" id="resetPanel">
+      <div class="confirm-msg">인공지능학생회 이름을 입력하세요.</div>
+      <input type="text" id="resetAnswer" placeholder="이름 입력" autocomplete="off" />
+      <div class="actions-row">
+        <button type="button" class="btn-hint" id="resetYes" style="border-color:var(--alert); color:var(--alert); cursor:pointer;">리셋</button>
+        <button type="button" class="btn-hint" id="resetNo" style="cursor:pointer;">취소</button>
+      </div>
+    </div>
+    <input type="file" id="importRankFile" accept="application/json,.json" style="display:none;" />
+    <button class="btn btn-primary" id="rankBackBtn" style="margin-top:14px;">처음으로</button>
+  </section>
+
+</main>
+
+<footer>NO INTERNET REQUIRED — 오프라인 백업 모드로 동작합니다</footer>
+
+<script>
+/* ============================================================
+   Facet + Tier 유사도 데이터
+   - facets[].tiers.core/strong/weak : 의미 축별 키워드 (축 내 동일 점수)
+   - extras : facet에 넣기 애매한 단독 고득점/고유 표현
+   - aliases : 정답과 동일 취급 (100%)
+   - hints : 힌트 버튼 공개 후보 (점수 오름차순으로 정렬)
+   - description : 결과 화면 해설
+============================================================ */
+const DATA = {
+  stage1: {
+    label: "1단계 · 워밍업",
+    timeLimitSec: null,
+    tryLimit: null,
+    sets: {
+      "심리학과": {
+        description: "연세대 심리학과 — 고대 인공지능학과와 교류하는 자매·교류 학과.",
+        aliases: [],
+        facets: [
+          {
+            id: "exchange",
+            label: "연세 교류",
+            tiers: {
+              core:   { score: 96, words: ["교류반", "심리학부", "고인연심", "결:심", "함동응원"] },
+              strong: { score: 82, words: ["연세대", "연대", "교류", "신촌", "독수리들", "독수리", "대학교류", "학과교류", "자매학과"] },
+              weak:   { score: 48, words: ["협약", "공동수업", "연합행사", "공동프로젝트", "세미나", "교류학과"] }
+            }
+          },
+          {
+            id: "psychology",
+            label: "심리학",
+            tiers: {
+              core:   { score: 70, words: ["심리", "인지과학", "뇌과학"] },
+              strong: { score: 55, words: ["상담", "인지심리", "행동심리", "심리학개론", "상담심리", "임상심리"] },
+              weak:   { score: 38, words: ["사회심리", "발달심리", "심리검사", "감정", "스트레스", "MBTI", "성격유형", "상담사", "심리상담센터", "뇌", "실험", "설문조사"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["독수리들", "결:심", "교류반", "고인연심"]
+      },
+      "펄스": {
+        description: "인공지능학과 학생회 — 정보인의날·컴데인 등 학과 행사를 운영한다.",
+        aliases: ["pulse", "Pulse", "PULSE"],
+        facets: [
+          {
+            id: "student-council",
+            label: "학생회",
+            tiers: {
+              core:   { score: 96, words: ["학생회", "컴데인 운영진"] },
+              strong: { score: 78, words: ["정보인의날", "정보대", "총학생회", "인공지능학과"] },
+              weak:   { score: 48, words: ["스태프", "임원진", "회장", "부회장", "기획", "홍보", "학생자치", "새내기", "신입생"] }
+            }
+          },
+          {
+            id: "event",
+            label: "행사·에너지",
+            tiers: {
+              core:   { score: 70, words: ["행사", "학과행사"] },
+              strong: { score: 58, words: ["부스", "축제부스", "로고", "슬로건"] },
+              weak:   { score: 40, words: ["단합", "오티", "엠티", "심장박동", "맥박", "리듬", "에너지", "활기", "인공지능", "딥러닝"] }
+            }
+          }
+        ],
+        extras: { "정보대학 학생회": 94 },
+        hints: ["정보대", "학생회", "정보대학 학생회"]
+      },
+      "우정정보관": {
+        description: "고려대 정보대학 건물 — 강의실·랩실·과방(라운지)이 있는 정보관.",
+        aliases: [],
+        facets: [
+          {
+            id: "building",
+            label: "정보관 건물",
+            tiers: {
+              core:   { score: 97, words: ["정보관", "과방"] },
+              strong: { score: 80, words: ["정보대", "강의실", "라운지", "컴퓨터실"] },
+              weak:   { score: 45, words: ["건물", "강의동", "세미나실", "랩실", "연구실", "스터디룸", "신축건물", "안암캠퍼스", "정보대후문", "하나스퀘어", "중앙광장", "정문", "캠퍼스"] }
+            }
+          },
+          {
+            id: "info-college",
+            label: "정보대·전공",
+            tiers: {
+              core:   { score: 58, words: ["인공지능학과", "컴퓨터공학과", "소프트웨어학과"] },
+              strong: { score: 48, words: ["데이터과학과", "IT", "전산실", "서버실"] },
+              weak:   { score: 25, words: ["프로젝터", "노트북", "딥러닝", "알고리즘", "자료구조"] }
+            }
+          }
+        ],
+        extras: { "정보대 건물": 88 },
+        hints: ["건물", "강의실", "정보대", "정보대 건물"]
+      },
+      "알고리즘": {
+        description: "문제 해결을 위한 절차적 방법 — 코딩테스트·자료구조와 함께 배우는 전공 핵심.",
+        aliases: [],
+        facets: [
+          {
+            id: "cs-algo",
+            label: "알고리즘·코딩",
+            tiers: {
+              core:   { score: 80, words: ["코딩", "프로그래밍", "코딩테스트", "데이터 정렬"] },
+              strong: { score: 68, words: ["정렬", "탐색", "그래프", "재귀", "동적계획법", "DP", "그리디", "시간복잡도", "백준", "문제풀이", "이진탐색", "완전탐색", "백트래킹", "코테준비", "PS", "알고리즘문제"] },
+              weak:   { score: 48, words: ["자료구조", "큐", "스택", "트리", "해시", "힙", "파이썬", "C++", "자바", "개발자", "온라인저지", "프로그래머스", "논리", "수학"] }
+            }
+          },
+          {
+            id: "campus",
+            label: "학과·수업",
+            tiers: {
+              core:   { score: 96, words: ["박성빈", "유용재"] },
+              strong: { score: 45, words: ["교수님", "조교", "인공지능", "딥러닝", "전공"] },
+              weak:   { score: 32, words: ["과제", "밤샘", "스터디", "정보대", "학점", "시험", "강의", "취업", "인턴", "면접"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["백준", "프로그래밍", "박성빈", "유용재"]
+      },
+      "정이정정": {
+        description: "정경대·이과대·정보대·정보보호대 4개 단과대 연합 새터(새내기배움터).",
+        aliases: [],
+        facets: [
+          {
+            id: "four-colleges",
+            label: "4개 단과대",
+            tiers: {
+              core:   { score: 95, words: ["정경대학", "이과대학", "4개 단과대"] },
+              strong: { score: 72, words: ["정보대학", "정보보호대학", "연합새터", "학과연합", "단과대연합", "학생회연합"] },
+              weak:   { score: 42, words: ["정보보호", "이과계열", "사회과학", "자연과학"] }
+            }
+          },
+          {
+            id: "saeter",
+            label: "새터·신입생",
+            tiers: {
+              core:   { score: 78, words: ["새터", "새내기배움터"] },
+              strong: { score: 55, words: ["신입생", "새내기", "오리엔테이션", "연합행사"] },
+              weak:   { score: 35, words: ["조편성", "장기자랑", "게임", "밤샘", "버스", "리조트", "대학생활", "단체티", "조모임", "사회자", "컴퓨터", "인공지능학과"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["새터", "연합새터", "4개 단과대", "정경대학", "이과대학"]
+      },
+      "고인돌": {
+        description: "인공지능학과 노션 기반 정보·꿀팁 공유 페이지(돌려보는 꿀팁).",
+        aliases: [],
+        facets: [
+          {
+            id: "tips-notion",
+            label: "꿀팁·노션",
+            tiers: {
+              core:   { score: 92, words: ["돌려보는 꿀팁", "노션", "꿀팁"] },
+              strong: { score: 68, words: ["인공지능학과", "수강꿀팁", "전공꿀팁", "족보", "학과위키", "교수님정보", "강의후기"] },
+              weak:   { score: 48, words: ["정보공유", "학과공지", "학과행사", "학과정보", "필독", "신입생가이드", "시간표", "학점꿀팁", "선배후기", "공유문서", "자료모음", "학과자료", "정리자료", "커리큘럼", "필수과목"] }
+            }
+          },
+          {
+            id: "wiki-culture",
+            label: "학과 문화",
+            tiers: {
+              core:   { score: 50, words: ["신입생필수", "학과생활"] },
+              strong: { score: 42, words: ["학과문화", "학과홈페이지", "학과인트라넷"] },
+              weak:   { score: 35, words: ["링크", "페이지", "노트정리", "학과전통", "위키피디아"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["인공지능학과", "꿀팁", "노션", "돌려보는 꿀팁"]
+      },
+      "GPU": {
+        description: "그래픽 처리 장치 — 딥러닝·병렬 연산에 쓰이는 하드웨어(엔비디아·CUDA 등).",
+        aliases: [],
+        facets: [
+          {
+            id: "graphics-hw",
+            label: "그래픽·하드웨어",
+            tiers: {
+              core:   { score: 94, words: ["그래픽처리장치", "지포스", "CUDA"] },
+              strong: { score: 78, words: ["엔비디아", "그래픽카드", "병렬연산", "딥러닝서버", "A100", "H100", "병렬처리", "컴퓨터구조"] },
+              weak:   { score: 52, words: ["CPU", "반도체", "VRAM", "텐서코어", "컴퓨터부품", "그래픽", "렌더링", "게이밍", "게임그래픽", "클럭속도", "쿨러", "발열", "전력소모", "하드웨어", "부품", "컴퓨터부속", "컴퓨터사양", "컴퓨터성능", "사양", "성능", "연산능력", "컴퓨팅", "연산장치", "반도체칩", "그래픽연산", "3D렌더링", "게임그래픽카드", "AMD", "라데온", "인텔", "컴퓨터하드웨어", "컴퓨터그래픽스", "컴퓨터", "서버", "슈퍼컴퓨터"] }
+            }
+          },
+          {
+            id: "ai-compute",
+            label: "AI 연산",
+            tiers: {
+              core:   { score: 65, words: ["머신러닝서버", "딥러닝학습"] },
+              strong: { score: 58, words: ["인공지능"] },
+              weak:   { score: 40, words: [] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["그래픽카드", "병렬연산", "엔비디아", "그래픽처리장치"]
+      },
+      "정보대학": {
+        description: "고려대 컴퓨터·데이터과학·인공지능 3학과가 속한 단과대학.",
+        aliases: ["정보대"],
+        facets: [
+          {
+            id: "college",
+            label: "단과대",
+            tiers: {
+              core:   { score: 92, words: ["컴퓨터학과", "인공지능학과", "데이터과학과"] },
+              strong: { score: 80, words: ["우정정보관", "정보관", "3개학과"] },
+              weak:   { score: 50, words: ["단과대", "자연계", "공대", "이과대학"] }
+            }
+          },
+          {
+            id: "life",
+            label: "학생 자치",
+            tiers: {
+              core:   { score: 78, words: ["펄스", "정보인의날"] },
+              strong: { score: 58, words: ["학생회", "과방", "컴데인"] },
+              weak:   { score: 35, words: ["안암", "송현스퀘어"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["우정정보관", "인공지능학과", "컴퓨터학과", "데이터과학과"]
+      },
+      "컴퓨터학과": {
+        description: "정보대학 소속 컴퓨터과학 전공 — 소프트웨어·시스템·이론을 다룬다.",
+        aliases: ["컴퓨터공학과", "컴공"],
+        facets: [
+          {
+            id: "major",
+            label: "전공",
+            tiers: {
+              core:   { score: 90, words: ["컴퓨터과학", "소프트웨어", "컴과"] },
+              strong: { score: 75, words: ["정보대학", "정보대", "프로그래밍", "운영체제"] },
+              weak:   { score: 48, words: ["코딩", "개발", "알고리즘", "자료구조", "전공"] }
+            }
+          },
+          {
+            id: "siblings",
+            label: "자매 학과",
+            tiers: {
+              core:   { score: 82, words: ["인공지능학과", "데이터과학과"] },
+              strong: { score: 60, words: ["우정정보관", "정보관"] },
+              weak:   { score: 35, words: ["펄스", "정보인의날"] }
+            }
+          }
+        ],
+        extras: { "학과": 50 },
+        hints: ["소프트웨어", "정보대", "컴퓨터과학", "학과"]
+      },
+      "데이터과학과": {
+        description: "정보대학 소속 — 통계·데이터 분석·머신러닝으로 데이터를 다루는 학과.",
+        aliases: ["데이터사이언스학과", "데과"],
+        facets: [
+          {
+            id: "major",
+            label: "전공",
+            tiers: {
+              core:   { score: 90, words: ["데이터사이언스", "데이터분석", "통계"] },
+              strong: { score: 72, words: ["머신러닝", "파이썬", "pandas", "빅데이터"] },
+              weak:   { score: 45, words: ["시각화", "데이터셋", "엑셀", "SQL"] }
+            }
+          },
+          {
+            id: "college",
+            label: "정보대",
+            tiers: {
+              core:   { score: 82, words: ["정보대학", "정보대", "인공지능학과"] },
+              strong: { score: 60, words: ["컴퓨터학과", "우정정보관"] },
+              weak:   { score: 35, words: ["펄스", "자연계"] }
+            }
+          }
+        ],
+        extras: { "학과": 50 },
+        hints: ["데이터분석", "통계", "정보대", "학과"]
+      },
+      "AIKU": {
+        description: "고려대 정보대학 인공지능 동아리 — 스터디·프로젝트·세미나로 AI를 익힌다.",
+        aliases: ["aiku", "Aiku"],
+        facets: [
+          {
+            id: "club",
+            label: "AI 동아리",
+            tiers: {
+              core:   { score: 92, words: ["인공지능동아리", "AI동아리"] },
+              strong: { score: 78, words: ["동아리", "스터디", "세미나", "프로젝트"] },
+              weak:   { score: 48, words: ["학회", "소모임", "멘토링", "논문"] }
+            }
+          },
+          {
+            id: "field",
+            label: "분야",
+            tiers: {
+              core:   { score: 70, words: ["인공지능", "딥러닝", "머신러닝"] },
+              strong: { score: 55, words: ["정보대", "인공지능학과", "모델"] },
+              weak:   { score: 35, words: ["파이썬", "논문리딩"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["동아리", "딥러닝", "인공지능동아리", "AI동아리"]
+      },
+      "ALPS": {
+        description: "정보대 알고리즘 동아리 — 문제 풀이와 ICPC 등 대회를 준비한다.",
+        aliases: ["Alps", "alps"],
+        facets: [
+          {
+            id: "algo-club",
+            label: "알고리즘 동아리",
+            tiers: {
+              core:   { score: 92, words: ["알고리즘동아리", "문제풀이"] },
+              strong: { score: 80, words: ["알고리즘", "ICPC", "코딩테스트", "백준"] },
+              weak:   { score: 50, words: ["PS", "대회", "프로그래밍", "스터디"] }
+            }
+          },
+          {
+            id: "college",
+            label: "정보대",
+            tiers: {
+              core:   { score: 55, words: ["정보대", "동아리"] },
+              strong: { score: 42, words: ["컴퓨터학과", "인공지능학과"] },
+              weak:   { score: 28, words: ["우정정보관"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["백준", "ICPC", "알고리즘", "알고리즘동아리"]
+      },
+      "캣독": {
+        description: "정보대 게임 제작 소모임 CAT&DOG — 학기마다 게임을 만들어 발표한다.",
+        aliases: ["CAT&DOG", "CATDOG", "catdog", "캣앤독"],
+        facets: [
+          {
+            id: "gamedev",
+            label: "게임 개발",
+            tiers: {
+              core:   { score: 92, words: ["게임제작", "게임동아리", "게임개발"] },
+              strong: { score: 78, words: ["유니티", "언리얼", "넥슨", "게임잼"] },
+              weak:   { score: 48, words: ["기획", "그래픽", "사운드", "모바일게임", "C#"] }
+            }
+          },
+          {
+            id: "club",
+            label: "정보대 동아리",
+            tiers: {
+              core:   { score: 60, words: ["동아리", "소모임", "정보대"] },
+              strong: { score: 45, words: ["프로젝트", "발표"] },
+              weak:   { score: 30, words: ["스터디", "세미나"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["넥슨", "유니티", "게임개발", "게임제작"]
+      },
+      "KUICS": {
+        description: "고려대 정보보안 동아리 — 해킹·보안·CTF를 중심으로 활동한다.",
+        aliases: ["kuics", "Kuics"],
+        facets: [
+          {
+            id: "security",
+            label: "정보보안",
+            tiers: {
+              core:   { score: 92, words: ["정보보안", "보안동아리", "CTF"] },
+              strong: { score: 78, words: ["해킹", "사이버보안", "취약점", "암호"] },
+              weak:   { score: 48, words: ["네트워크", "웹해킹", "리버싱", "포렌식"] }
+            }
+          },
+          {
+            id: "club",
+            label: "동아리",
+            tiers: {
+              core:   { score: 55, words: ["동아리", "정보대"] },
+              strong: { score: 42, words: ["컴퓨터학과", "정보보호"] },
+              weak:   { score: 28, words: ["스터디", "대회"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["해킹", "CTF", "정보보안", "보안동아리"]
+      },
+      "기초인공지능": {
+        description: "인공지능학과 전공 기초 과목 — AI의 개념과 탐색·학습의 뼈대를 배운다.",
+        aliases: ["기초 AI", "기초AI"],
+        facets: [
+          {
+            id: "course",
+            label: "전공 과목",
+            tiers: {
+              core:   { score: 88, words: ["전공과목", "전공기초", "인공지능개론"] },
+              strong: { score: 72, words: ["인공지능학과", "수업", "강의", "학부"] },
+              weak:   { score: 42, words: ["과제", "시험", "조교", "학점", "실습"] }
+            }
+          },
+          {
+            id: "content",
+            label: "내용",
+            tiers: {
+              core:   { score: 80, words: ["인공지능", "탐색", "지식표현"] },
+              strong: { score: 62, words: ["머신러닝", "휴리스틱", "문제해결"] },
+              weak:   { score: 40, words: ["알고리즘", "논리", "에이전트"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["인공지능개론", "전공기초", "인공지능", "전공과목"]
+      },
+      "기초딥러닝": {
+        description: "신경망과 학습을 다루는 전공 과목 — GPU 실습과 모델 구현이 따라온다.",
+        aliases: ["기초 딥러닝"],
+        facets: [
+          {
+            id: "course",
+            label: "전공 과목",
+            tiers: {
+              core:   { score: 88, words: ["전공과목", "딥러닝수업"] },
+              strong: { score: 70, words: ["인공지능학과", "기초인공지능", "실습"] },
+              weak:   { score: 42, words: ["과제", "프로젝트", "조교", "학점"] }
+            }
+          },
+          {
+            id: "content",
+            label: "내용",
+            tiers: {
+              core:   { score: 90, words: ["딥러닝", "신경망", "역전파"] },
+              strong: { score: 75, words: ["GPU", "파이토치", "텐서플로", "CNN"] },
+              weak:   { score: 50, words: ["학습", "모델", "레이어", "손실함수"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["신경망", "GPU", "딥러닝", "전공과목"]
+      },
+      "하나스퀘어": {
+        description: "안암 자연계 캠퍼스 생활 거점 — 식당·카페·편의시설이 모인 복합 공간.",
+        aliases: ["하나 스퀘어"],
+        facets: [
+          {
+            id: "place",
+            label: "생활 공간",
+            tiers: {
+              core:   { score: 90, words: ["식당", "학생식당", "자연계"] },
+              strong: { score: 75, words: ["카페", "편의점", "푸드코트", "지하"] },
+              weak:   { score: 45, words: ["밥", "점심", "공부", "라운지", "ATM"] }
+            }
+          },
+          {
+            id: "campus",
+            label: "캠퍼스",
+            tiers: {
+              core:   { score: 70, words: ["안암", "고려대", "캠퍼스"] },
+              strong: { score: 55, words: ["우정정보관", "이학관", "애기능"] },
+              weak:   { score: 32, words: ["정문", "중앙광장"] }
+            }
+          }
+        ],
+        extras: { "피아노": 72, "공간": 55, "독서실": 70 },
+        hints: ["자연계", "피아노", "공간", "독서실"]
+      },
+      "기계학습": {
+        description: "데이터로부터 규칙을 배우는 AI 분야 — 학과 핵심 개념이자 전공의 뼈대.",
+        aliases: [],
+        facets: [
+          {
+            id: "ml",
+            label: "학습 이론",
+            tiers: {
+              core:   { score: 92, words: ["머신러닝", "MachineLearning", "ML"] },
+              strong: { score: 78, words: ["지도학습", "비지도학습", "모델", "학습"] },
+              weak:   { score: 50, words: ["회귀", "분류", "클러스터링", "과적합", "데이터"] }
+            }
+          },
+          {
+            id: "ai",
+            label: "AI 맥락",
+            tiers: {
+              core:   { score: 70, words: ["인공지능", "딥러닝"] },
+              strong: { score: 55, words: ["기초인공지능", "인공지능학과"] },
+              weak:   { score: 35, words: ["파이썬", "통계", "알고리즘"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["지도학습", "딥러닝", "인공지능", "머신러닝"]
+      }
+    }
+  },
+  stage2: {
+    label: "2단계 · 랭킹전",
+    timeLimitSec: 180,
+    tryLimit: 15,
+    sets: {
+      "호랑이": {
+        description: "고려대학교 상징 마스코트 — 정문 호랑이상·크림슨과 함께 학교를 대표한다.",
+        aliases: [],
+        facets: [
+          {
+            id: "mascot",
+            label: "마스코트·상징",
+            tiers: {
+              core:   { score: 90, words: ["고려대", "마스코트", "김종국"] },
+              strong: { score: 72, words: ["호랑이상", "상징", "정문호랑이상", "동상", "조형물", "명물", "조각상", "랜드마크"] },
+              weak:   { score: 48, words: ["동물", "맹수", "줄무늬", "사자", "표범", "야생", "용맹", "아이콘", "캐릭터", "인형", "굿즈", "발톱", "이빨", "포효", "정글의왕", "백수의왕", "야수", "청동", "동물원", "정글"] }
+            }
+          },
+          {
+            id: "campus-cheer",
+            label: "캠퍼스·응원",
+            tiers: {
+              core:   { score: 65, words: ["응원단", "독수리"] },
+              strong: { score: 50, words: ["응원가", "응원", "안암", "학교", "캠퍼스", "파이팅", "사진스팟", "포토존", "고연전"] },
+              weak:   { score: 28, words: ["축제", "정문", "축구", "체육대회", "과잠", "정보대", "컴퓨터", "입실렌티", "크림슨", "힘"] }
+            }
+          }
+        ],
+        extras: { "고려대학교": 90 },
+        hints: ["상징", "마스코트", "고려대학교"]
+      },
+      "크림슨": {
+        description: "고려대의 상징색(스쿨 컬러) — 과잠·유니폼·로고에 쓰이는 붉은색.",
+        aliases: [],
+        facets: [
+          {
+            id: "school-color",
+            label: "상징색",
+            tiers: {
+              core:   { score: 94, words: ["색깔", "과잠"] },
+              strong: { score: 76, words: ["고려대", "상징색", "학교색", "스쿨컬러", "빨강", "붉은색", "KU", "대학상징"] },
+              weak:   { score: 48, words: ["와인색", "자주색", "브랜드컬러", "로고컬러", "굿즈컬러", "과잠색깔"] }
+            }
+          },
+          {
+            id: "apparel",
+            label: "응원·의류",
+            tiers: {
+              core:   { score: 58, words: ["유니폼", "로고", "단체티", "응원티"] },
+              strong: { score: 48, words: ["응원", "응원단", "깃발", "배너", "굿즈", "후드", "학교브랜드"] },
+              weak:   { score: 32, words: ["정문", "호랑이", "축제", "야구", "축구", "정보대", "인공지능", "스쿨스피릿", "자부심", "마스코트", "고연전", "입실렌티", "티셔츠"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["고려대", "과잠", "색깔"]
+      },
+      "입실렌티": {
+        description: "고려대 봄 대동제(축제) — 녹지운동장 공연·부스·응원이 열리는 캠퍼스 축제.",
+        aliases: [],
+        facets: [
+          {
+            id: "festival",
+            label: "봄축제",
+            tiers: {
+              core:   { score: 90, words: ["녹지운동장", "축제", "봄축제"] },
+              strong: { score: 72, words: ["대동제", "콘서트", "라인업", "공연", "캠퍼스축제", "응원단"] },
+              weak:   { score: 48, words: ["가수", "무대", "응원", "부스", "주점", "잔디밭", "본관앞", "아이돌", "초청가수", "티켓팅", "떼창", "야광봉", "축제기간", "부스운영", "학생회", "총학생회", "티켓", "응원단공연", "불꽃놀이", "봄"] }
+            }
+          },
+          {
+            id: "campus-life",
+            label: "캠퍼스 생활",
+            tiers: {
+              core:   { score: 40, words: ["고연전", "대학생활"] },
+              strong: { score: 35, words: ["밤샘", "술", "치킨", "인파", "인산인해", "추억", "낭만", "즐거움"] },
+              weak:   { score: 28, words: ["참살이길", "홍보", "펄스", "정보인의날", "안암", "정문"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["콘서트", "봄축제", "응원단", "녹지운동장"]
+      },
+      "고연전": {
+        description: "고려대·연세대 정기 체육 교류전(연고전) — 축구·야구·농구·아이스하키 등.",
+        aliases: [],
+        facets: [
+          {
+            id: "rivalry",
+            label: "정기전·라이벌",
+            tiers: {
+              core:   { score: 88, words: ["연고전", "야구", "농구", "아이스하키", "축구"] },
+              strong: { score: 75, words: ["정기전", "라이벌", "연세대", "응원전"] },
+              weak:   { score: 52, words: ["스포츠", "럭비", "응원단", "치어리딩", "카드섹션", "함성", "경기장", "대학스포츠", "응원문화", "응원가", "응원석"] }
+            }
+          },
+          {
+            id: "spirit",
+            label: "열기·전통",
+            tiers: {
+              core:   { score: 48, words: ["축제", "입실렌티"] },
+              strong: { score: 42, words: ["승부", "우승", "열정", "자부심", "승리", "전통", "떼창", "함성소리", "학교자부심"] },
+              weak:   { score: 32, words: ["패배", "잠실", "티켓", "참살이길", "정문", "크림슨", "호랑이", "신촌"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["라이벌", "축구", "아이스하키", "농구", "야구"]
+      },
+      "자료구조": {
+        description: "데이터를 효율적으로 저장·다루는 방법 — 배열·스택·큐·트리 등 전공 필수.",
+        aliases: [],
+        facets: [
+          {
+            id: "structures",
+            label: "자료구조 개념",
+            tiers: {
+              core:   { score: 78, words: ["트리", "스택", "큐", "연결리스트", "배열", "리스트"] },
+              strong: { score: 68, words: ["그래프", "해시", "힙", "이진트리", "포인터", "정렬", "탐색", "알고리즘"] },
+              weak:   { score: 52, words: ["재귀", "메모리", "C언어", "시간복잡도", "공간복잡도", "빅오", "코딩", "프로그래밍", "자바", "파이썬"] }
+            }
+          },
+          {
+            id: "course",
+            label: "수업·교수",
+            tiers: {
+              core:   { score: 96, words: ["박채용", "이도길", "김승태"] },
+              strong: { score: 55, words: ["전공필수", "코딩테스트", "백준", "교수님", "컴퓨터공학"] },
+              weak:   { score: 32, words: ["과제", "팀플", "시험", "족보", "조교", "강의", "학점", "정보대", "인공지능학과", "프로젝트", "밤샘", "도서관", "스터디룸", "개강", "종강", "중간고사", "기말고사", "실습", "랩"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["큐", "트리", "박채용", "이도길", "김승태"]
+      },
+      "파이썬": {
+        description: "입문·데이터·AI에 널리 쓰이는 프로그래밍 언어 — 컴퓨터프로그래밍 수업의 중심.",
+        aliases: [],
+        facets: [
+          {
+            id: "language",
+            label: "언어·코딩",
+            tiers: {
+              core:   { score: 92, words: ["컴퓨터프로그래밍", "코딩", "pandas"] },
+              strong: { score: 72, words: ["프로그래밍", "데이터분석", "문법", "반복문", "조건문", "코드", "라이브러리"] },
+              weak:   { score: 48, words: ["numpy", "jupyter", "크롤링", "자동화", "함수", "클래스", "객체지향", "VS코드", "아나콘다", "스크립트", "웹크롤러", "데이터사이언스", "통계", "디버깅", "에러", "초보", "입문"] }
+            }
+          },
+          {
+            id: "ai-course",
+            label: "AI·수업",
+            tiers: {
+              core:   { score: 55, words: ["머신러닝", "딥러닝", "실습"] },
+              strong: { score: 45, words: ["인공지능", "텐서플로", "파이토치", "코딩테스트", "백준", "개발", "개발자", "알고리즘", "자료구조"] },
+              weak:   { score: 28, words: ["설치", "강의", "과제", "컴퓨터", "프로젝트", "학과", "인공지능학과", "조교", "시험", "전공필수", "노트북"] }
+            }
+          }
+        ],
+        extras: { "언어": 58 },
+        hints: ["pandas", "언어", "코딩", "컴퓨터프로그래밍"]
+      },
+      "전산수학": {
+        description: "컴퓨터과학을 위한 수학 — 선형대수·이산수학·확률 등 전공 기초.",
+        aliases: [],
+        facets: [
+          {
+            id: "math",
+            label: "수학 주제",
+            tiers: {
+              core:   { score: 76, words: ["선형대수", "이산수학", "수학"] },
+              strong: { score: 62, words: ["미적분", "확률", "통계", "행렬", "벡터", "조합론", "그래프이론", "증명"] },
+              weak:   { score: 48, words: ["미분", "적분", "극한", "함수", "논리", "집합", "계산", "공식", "연산", "확률변수", "정규분포", "행렬식", "고유값", "벡터공간"] }
+            }
+          },
+          {
+            id: "course",
+            label: "수업·교수",
+            tiers: {
+              core:   { score: 96, words: ["이현철", "박중석", "이중실"] },
+              strong: { score: 55, words: ["전공필수", "교수님"] },
+              weak:   { score: 35, words: ["알고리즘", "컴퓨터공학", "시험", "족보", "과제", "학점", "조교", "강의", "밤샘", "인공지능학과", "딥러닝", "머신러닝", "중간고사", "기말고사", "이론", "공대"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["이산수학", "선형대수", "이현철", "박중석", "이중실"]
+      },
+      "1905": {
+        description: "고려대 창립 연도(보성전문학교)이자, 고려대 중앙 락밴드 동아리 이름.",
+        aliases: ["일구공오"],
+        facets: [
+          {
+            id: "founding-year",
+            label: "창립 연도",
+            tiers: {
+              core:   { score: 90, words: ["개교", "창립", "개교년도", "보성전문학교", "1946"] },
+              strong: { score: 75, words: ["설립", "연도", "개교기념", "개교기념일", "보성", "전문학교", "고려대"] },
+              weak:   { score: 48, words: ["역사", "전통", "사학", "유서깊은", "역사관", "박물관", "근대교육", "민족대학", "민족", "자주독립", "항일", "고려대역사", "창학이념", "자유정의진리"] }
+            }
+          },
+          {
+            id: "rock-band",
+            label: "락밴드 동아리",
+            tiers: {
+              core:   { score: 92, words: ["밴드", "락밴드", "동아리밴드", "중앙락밴드"] },
+              strong: { score: 80, words: ["동아리", "공연", "라이브", "중앙동아리", "그룹사운드"] },
+              weak:   { score: 50, words: ["음악", "기타", "보컬", "합주", "록", "무대", "연습실", "밴드부"] }
+            }
+          }
+        ],
+        extras: {
+          "안암": 30
+        },
+        hints: ["연도", "보성전문학교", "개교", "밴드", "락밴드"]
+      },
+      "챗GPT": {
+        description: "OpenAI의 대화형 AI 챗봇 — GPT·LLM 기반 언어 모델 서비스.",
+        aliases: ["챗지피티", "ChatGPT", "chatgpt"],
+        facets: [
+          {
+            id: "product",
+            label: "챗봇·제품",
+            tiers: {
+              core:   { score: 92, words: ["GPT", "챗봇", "OpenAI"] },
+              strong: { score: 88, words: ["제미나이", "Gemini", "클로드", "Claude"] },
+              weak:   { score: 78, words: ["언어모델", "LLM", "인공지능", "AI", "대화형AI", "인공지능챗봇"] }
+            }
+          },
+          {
+            id: "tech",
+            label: "기반 기술",
+            tiers: {
+              core:   { score: 48, words: ["프롬프트", "자연어처리", "텍스트생성"] },
+              strong: { score: 42, words: ["딥러닝", "머신러닝", "AI비서"] },
+              weak:   { score: 34, words: ["대화", "질문", "답변", "코딩도우미", "과제도우미", "리포트", "자동완성"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["LLM", "OpenAI", "챗봇", "GPT"]
+      },
+      "고대빵": {
+        description: "고려대 상징 굿즈 빵(호랑이빵 등) — 정문 인근 베이커리·기념 간식.",
+        aliases: [],
+        facets: [
+          {
+            id: "bread",
+            label: "빵·베이커리",
+            tiers: {
+              core:   { score: 90, words: ["베이커리", "빵", "빵집"] },
+              strong: { score: 72, words: ["호랑이빵", "카스테라", "크림빵", "단팥빵", "빵맛집"] },
+              weak:   { score: 45, words: ["굿즈빵", "캐릭터빵", "디저트", "간식", "카페"] }
+            }
+          },
+          {
+            id: "goods",
+            label: "굿즈·선물",
+            tiers: {
+              core:   { score: 50, words: ["기념품", "학교굿즈", "필수템"] },
+              strong: { score: 42, words: ["선물", "답례품", "졸업선물", "신입생선물", "인기템"] },
+              weak:   { score: 35, words: ["정문", "매점", "편의점", "sns맛집", "인스타핫플"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["빵", "호랑이빵", "베이커리"]
+      },
+      "KUPID": {
+        description: "고려대 학사 통합 포털 — 수강신청·성적·학적 등 학교 시스템.",
+        aliases: ["쿠피드", "Kupid", "kupid"],
+        facets: [
+          {
+            id: "portal",
+            label: "포털·시스템",
+            tiers: {
+              core:   { score: 88, words: ["포털사이트", "포털", "통합정보시스템"] },
+              strong: { score: 72, words: ["학사정보", "고려대시스템", "학교시스템", "학교포털", "수강신청", "캠퍼스포털", "온라인시스템", "학교사이트"] },
+              weak:   { score: 50, words: ["성적조회", "시간표조회", "학사행정", "인트라넷", "로그인", "학번", "비밀번호", "등록", "휴학신청", "졸업요건", "강의계획서", "학적", "성적표", "수강정정", "학사일정"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["고려대시스템", "학사정보", "통합정보시스템", "포털사이트"]
+      },
+      "하나은행": {
+        description: "고려대 제휴 은행 — 등록금 납부·학생증·캠퍼스 카드와 연결된다.",
+        aliases: [],
+        facets: [
+          {
+            id: "partner-bank",
+            label: "제휴·등록금",
+            tiers: {
+              core:   { score: 92, words: ["제휴은행", "학교은행", "은행"] },
+              strong: { score: 78, words: ["등록금납부", "계좌", "등록금", "학교제휴카드", "카드", "통장"] },
+              weak:   { score: 58, words: ["등록금인상", "체크카드", "계좌이체", "등록금고지서", "학자금대출", "은행앱", "하나원큐", "신용카드", "ATM", "은행창구", "지점", "캠퍼스카드", "등록금분납", "학생증"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["카드", "등록금납부", "제휴은행"]
+      },
+      "참살이길": {
+        description: "안암 캠퍼스 옆 먹거리·술집 거리 — 고대생의 밥약·뒤풀이 성지.",
+        aliases: ["참살이"],
+        facets: [
+          {
+            id: "street",
+            label: "안암 거리",
+            tiers: {
+              core:   { score: 90, words: ["밥약", "술집", "먹거리골목"] },
+              strong: { score: 78, words: ["안암", "고대사거리", "뒷골목"] },
+              weak:   { score: 48, words: ["식당", "카페", "치킨", "고기", "포차"] }
+            }
+          },
+          {
+            id: "campus-life",
+            label: "대학 생활",
+            tiers: {
+              core:   { score: 62, words: ["뒤풀이", "개강파티", "종강"] },
+              strong: { score: 48, words: ["고려대", "캠퍼스", "대학가"] },
+              weak:   { score: 32, words: ["입실렌티", "축제", "정문"] }
+            }
+          }
+        ],
+        extras: { "길거리": 68 },
+        hints: ["술집", "안암", "길거리", "먹거리골목"]
+      },
+      "자유정의진리": {
+        description: "고려대학교 교훈 — 자유, 정의, 진리 세 가치를 내건다.",
+        aliases: ["자유·정의·진리", "자유 정의 진리"],
+        facets: [
+          {
+            id: "motto",
+            label: "교훈",
+            tiers: {
+              core:   { score: 94, words: ["교훈", "고대교훈", "슬로건"] },
+              strong: { score: 80, words: ["자유", "정의", "진리"] },
+              weak:   { score: 50, words: ["정신", "이념", "창학이념", "교시"] }
+            }
+          },
+          {
+            id: "school",
+            label: "고려대",
+            tiers: {
+              core:   { score: 70, words: ["고려대", "민족고대"] },
+              strong: { score: 52, words: ["상징", "전통", "교가"] },
+              weak:   { score: 32, words: ["크림슨", "호랑이", "개교"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["자유", "진리", "교훈", "고대교훈"]
+      },
+      "제미나이": {
+        description: "구글의 대화형 AI — Gemini. 챗GPT·클로드와 자주 비교되는 모델.",
+        aliases: ["Gemini", "gemini", "제미니", "GEMINI"],
+        facets: [
+          {
+            id: "product",
+            label: "구글 AI",
+            tiers: {
+              core:   { score: 94, words: ["구글AI", "구글", "Google"] },
+              strong: { score: 86, words: ["챗GPT", "클로드", "ChatGPT", "Claude"] },
+              weak:   { score: 70, words: ["챗봇", "LLM", "언어모델", "대화형AI"] }
+            }
+          },
+          {
+            id: "use",
+            label: "쓰임",
+            tiers: {
+              core:   { score: 55, words: ["프롬프트", "Bard", "바드"] },
+              strong: { score: 45, words: ["인공지능", "딥러닝", "멀티모달"] },
+              weak:   { score: 32, words: ["검색", "안드로이드", "코랩"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["LLM", "구글", "구글AI"]
+      },
+      "클로드": {
+        description: "Anthropic의 대화형 AI — Claude. 긴 글·코딩 도움으로 잘 알려져 있다.",
+        aliases: ["Claude", "claude", "CLAUDE", "클로드AI"],
+        facets: [
+          {
+            id: "product",
+            label: "Anthropic AI",
+            tiers: {
+              core:   { score: 94, words: ["Anthropic", "앤트로픽"] },
+              strong: { score: 86, words: ["챗GPT", "제미나이", "ChatGPT", "Gemini"] },
+              weak:   { score: 70, words: ["챗봇", "LLM", "언어모델", "대화형AI"] }
+            }
+          },
+          {
+            id: "use",
+            label: "쓰임",
+            tiers: {
+              core:   { score: 58, words: ["코딩도우미", "긴문맥", "ConstitutionalAI"] },
+              strong: { score: 45, words: ["프롬프트", "인공지능", "텍스트생성"] },
+              weak:   { score: 32, words: ["대화", "질문", "답변", "과제도우미"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["LLM", "Anthropic", "앤트로픽"]
+      },
+      "신경망": {
+        description: "뇌 뉴런에서 힌트를 얻은 학습 구조 — 딥러닝 모델의 기본 뼈대.",
+        aliases: ["뉴럴네트워크", "Neural Network", "neural network"],
+        facets: [
+          {
+            id: "structure",
+            label: "구조",
+            tiers: {
+              core:   { score: 92, words: ["뉴런", "레이어", "딥러닝"] },
+              strong: { score: 78, words: ["퍼셉트론", "역전파", "가중치", "활성화함수"] },
+              weak:   { score: 52, words: ["CNN", "RNN", "트랜스포머", "은닉층"] }
+            }
+          },
+          {
+            id: "field",
+            label: "분야",
+            tiers: {
+              core:   { score: 70, words: ["머신러닝", "인공지능", "기계학습"] },
+              strong: { score: 50, words: ["학습", "모델", "기초딥러닝"] },
+              weak:   { score: 32, words: ["뇌", "인지과학"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["퍼셉트론", "레이어", "딥러닝", "뉴런"]
+      },
+      "강화학습": {
+        description: "보상과 시행착오로 정책을 배우는 AI — 알파고가 대표 사례다.",
+        aliases: ["RL", "Reinforcement Learning"],
+        facets: [
+          {
+            id: "rl",
+            label: "강화학습 개념",
+            tiers: {
+              core:   { score: 92, words: ["알파고", "보상", "에이전트"] },
+              strong: { score: 78, words: ["환경", "정책", "Q러닝", "시행착오"] },
+              weak:   { score: 50, words: ["게임AI", "탐색", "마르코프", "가치함수"] }
+            }
+          },
+          {
+            id: "ai",
+            label: "AI 맥락",
+            tiers: {
+              core:   { score: 68, words: ["머신러닝", "딥러닝", "인공지능"] },
+              strong: { score: 48, words: ["학습", "모델", "바둑"] },
+              weak:   { score: 30, words: ["로봇", "제어"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["보상", "에이전트", "알파고"]
+      },
+      "머신러닝": {
+        description: "데이터로 패턴을 학습하는 기술 — 인공지능학과 전공의 중심 축.",
+        aliases: ["Machine Learning", "machine learning"],
+        facets: [
+          {
+            id: "ml",
+            label: "학습",
+            tiers: {
+              core:   { score: 92, words: ["기계학습", "지도학습", "학습모델"] },
+              strong: { score: 78, words: ["비지도학습", "분류", "회귀", "데이터"] },
+              weak:   { score: 52, words: ["과적합", "특성", "훈련", "테스트셋"] }
+            }
+          },
+          {
+            id: "ai",
+            label: "AI",
+            tiers: {
+              core:   { score: 75, words: ["딥러닝", "인공지능", "신경망"] },
+              strong: { score: 55, words: ["파이썬", "사이킷런", "모델"] },
+              weak:   { score: 35, words: ["통계", "알고리즘", "인공지능학과"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["지도학습", "딥러닝", "기계학습", "분류"]
+      },
+      "프롬프트": {
+        description: "생성형 AI에게 보내는 지시문 — 질문·조건·역할을 적어 답을 이끈다.",
+        aliases: ["prompt", "Prompt"],
+        facets: [
+          {
+            id: "prompting",
+            label: "지시문",
+            tiers: {
+              core:   { score: 90, words: ["지시문", "프롬프트엔지니어링"] },
+              strong: { score: 78, words: ["질문", "입력", "명령"] },
+              weak:   { score: 50, words: ["역할부여", "few-shot", "시스템프롬프트"] }
+            }
+          },
+          {
+            id: "models",
+            label: "생성형 AI",
+            tiers: {
+              core:   { score: 82, words: ["챗GPT", "제미나이", "클로드"] },
+              strong: { score: 65, words: ["LLM", "챗봇", "생성형AI"] },
+              weak:   { score: 40, words: ["대화", "답변", "텍스트생성"] }
+            }
+          }
+        ],
+        extras: {},
+        hints: ["LLM", "지시문", "프롬프트엔지니어링"]
+      }
+    }
+  }
+};
+
+/* 운영진 정답지 번호와 동일한 고정 순서. 화면에는 번호만 보이고 정답은 숨김 */
+const STAGE_WORDS = {
+  stage1: [
+    '심리학과','펄스','우정정보관','알고리즘','정이정정','고인돌','GPU','정보대학',
+    '컴퓨터학과','데이터과학과','AIKU','ALPS','캣독','KUICS','기초인공지능','기초딥러닝',
+    '하나스퀘어','기계학습'
+  ],
+  stage2: [
+    '호랑이','크림슨','입실렌티','고연전','자료구조','파이썬','전산수학','1905',
+    '챗GPT','고대빵','KUPID','하나은행','참살이길','자유정의진리','제미나이','클로드',
+    '신경망','강화학습','머신러닝','프롬프트'
+  ]
+};
+const lastPicked = { stage1: null, stage2: null };
+
+function pickRandomAnswer(stage){
+  const words = STAGE_WORDS[stage];
+  const pool = words.filter(w => w !== lastPicked[stage]);
+  const list = pool.length ? pool : words;
+  const answer = list[Math.floor(Math.random() * list.length)];
+  lastPicked[stage] = answer;
+  return answer;
+}
+
+function wordNumber(stage, answer){
+  return STAGE_WORDS[stage].indexOf(answer) + 1;
+}
+
+/* 표에 없는 단어용 약한 점수. 의미 판단이 아니라 "완전 무관" 표시용 */
+function hashScore(word, answer){
+  let h = 0;
+  const s = word + "::" + answer;
+  for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; }
+  return h % 13;
+}
+
+function normalizeWord(s){
+  return String(s).replace(/\s+/g, '');
+}
+
+/* 정답과 입력이 같은 세계면 표에 없어도 점수를 줌 */
+const CLUSTERS = [
+  {
+    score: 44,
+    words: ['컴데인','정보인의날','정보대','정보대학','컴퓨터학과','컴퓨터공학과','데이터과학과','인공지능학과','우정정보관','정보관','펄스','과방','고인돌','AIKU','ALPS','캣독','KUICS','송현스퀘어','기초인공지능','기초딥러닝','컴공','데과','정보대행사']
+  },
+  {
+    score: 40,
+    words: ['인공지능','머신러닝','기계학습','딥러닝','신경망','강화학습','자연어처리','컴퓨터비전','트랜스포머','LLM','프롬프트','챗GPT','제미나이','클로드','Gemini','Claude','ChatGPT','모델','학습']
+  },
+  {
+    score: 36,
+    words: ['고려대','안암','호랑이','크림슨','입실렌티','고연전','참살이길','자유정의진리','라이시움','하나스퀘어','고대빵','KUPID','하나은행','1905']
+  },
+  {
+    score: 36,
+    words: ['알고리즘','자료구조','파이썬','전산수학','코딩','프로그래밍','백준','코딩테스트']
+  }
+];
+
+const MORPHEMES = ['학과','대학','동아리','학생회','학습','러닝','행사','축제','프로그래밍','인공지능','데이터','과학','컴퓨터','정보','밴드','과방','포털','은행'];
+
+function collectSeeds(entry, answer){
+  const seeds = [{word: normalizeWord(answer), score: 100}];
+  (entry.aliases || []).forEach(a => seeds.push({word: normalizeWord(a), score: 100}));
+  Object.entries(entry.extras || {}).forEach(([k,v]) => seeds.push({word: normalizeWord(k), score: v}));
+  (entry.facets || []).forEach(facet => {
+    Object.values(facet.tiers || {}).forEach(tier => {
+      (tier.words || []).forEach(w => seeds.push({word: normalizeWord(w), score: tier.score}));
+    });
+  });
+  return seeds;
+}
+
+function longestCommonSubstring(a, b){
+  let best = '';
+  const dp = Array.from({length: a.length + 1}, () => Array(b.length + 1).fill(0));
+  for(let i=1;i<=a.length;i++){
+    for(let j=1;j<=b.length;j++){
+      if(a[i-1] === b[j-1]){
+        dp[i][j] = dp[i-1][j-1] + 1;
+        if(dp[i][j] > best.length) best = a.slice(i - dp[i][j], i);
+      }
+    }
+  }
+  return best;
+}
+
+function ngrams(s, n){
+  const out = [];
+  for(let i=0;i<=s.length-n;i++) out.push(s.slice(i, i+n));
+  return out;
+}
+
+function fallbackScore(word, entry, answer){
+  const normWord = normalizeWord(word);
+  const normAnswer = normalizeWord(answer);
+  const seeds = collectSeeds(entry, answer);
+  let best = null;
+
+  const guessClusters = CLUSTERS.filter(c => c.words.some(w => normalizeWord(w) === normWord));
+  const answerClusters = CLUSTERS.filter(c => c.words.some(w => normalizeWord(w) === normAnswer));
+  guessClusters.forEach(gc => {
+    if(answerClusters.some(ac => ac === gc)){
+      if(best === null || gc.score > best) best = gc.score;
+    }
+  });
+
+  seeds.forEach(seed => {
+    if(!seed.word || seed.word.length < 2) return;
+    const lcs = longestCommonSubstring(normWord, seed.word);
+    if(!lcs || lcs.length < 2) return;
+    const isMorph = MORPHEMES.some(m => lcs.includes(m));
+    const ratio = lcs.length / Math.max(normWord.length, seed.word.length);
+    let s = Math.round(seed.score * Math.max(ratio, isMorph ? 0.42 : 0) * (isMorph ? 0.9 : 1));
+    if(isMorph) s = Math.max(s, 30);
+    s = Math.min(s, Math.floor(seed.score * 0.7));
+    if(s >= 12 && (best === null || s > best)) best = s;
+  });
+
+  const grams = ngrams(normWord, 2);
+  if(grams.length){
+    seeds.forEach(seed => {
+      const kg = new Set(ngrams(seed.word, 2));
+      const shared = grams.filter(g => kg.has(g)).length;
+      if(!shared) return;
+      const s = Math.round(seed.score * (shared / grams.length) * 0.75);
+      if(s >= 12 && (best === null || s > best)) best = s;
+    });
+  }
+
+  if(best !== null) return best;
+  return hashScore(word, answer);
+}
+
+/* 채점 우선순위:
+   1) 정답/alias → 100 (submitGuess에서 처리)
+   2) extras 정확 일치
+   3) facet tier 정확 일치 (여러 축이면 최댓값)
+   4) 정답 문자열 부분일치 → 65~95
+   5) facet/extras 키워드 부분일치 → tier*0.9 / extra*0.85
+   6) 같은 클러스터 / 공통 형태소 / 글자 n-gram
+   7) 의사난수 0~12 */
+function scoreGuess(word, entry, answer){
+  const normWord = normalizeWord(word);
+  const normAnswer = normalizeWord(answer);
+  const extras = entry.extras || {};
+  const facets = entry.facets || [];
+
+  for(const [key, val] of Object.entries(extras)){
+    if(normalizeWord(key) === normWord) return val;
+  }
+
+  let bestExact = null;
+  for(const facet of facets){
+    const tiers = facet.tiers || {};
+    for(const tier of Object.values(tiers)){
+      for(const w of (tier.words || [])){
+        if(normalizeWord(w) === normWord){
+          if(bestExact === null || tier.score > bestExact) bestExact = tier.score;
+        }
+      }
+    }
+  }
+  if(bestExact !== null) return bestExact;
+
+  if(normWord.length >= 2 && normAnswer.length >= 2 &&
+     (normAnswer.includes(normWord) || normWord.includes(normAnswer))){
+    const ratio = Math.min(normWord.length, normAnswer.length) / Math.max(normWord.length, normAnswer.length);
+    return Math.round(65 + ratio * 30);
+  }
+
+  let bestPartial = null;
+  for(const facet of facets){
+    const tiers = facet.tiers || {};
+    for(const tier of Object.values(tiers)){
+      for(const w of (tier.words || [])){
+        const normKey = normalizeWord(w);
+        if(normKey.length < 2 || normWord.length < 2) continue;
+        if(normWord.includes(normKey) || normKey.includes(normWord)){
+          const partial = Math.floor(tier.score * 0.9);
+          if(bestPartial === null || partial > bestPartial) bestPartial = partial;
+        }
+      }
+    }
+  }
+  for(const [key, val] of Object.entries(extras)){
+    const normKey = normalizeWord(key);
+    if(normKey.length < 2 || normWord.length < 2) continue;
+    if(normWord.includes(normKey) || normKey.includes(normWord)){
+      const partial = Math.max(0, Math.floor(val * 0.85));
+      if(bestPartial === null || partial > bestPartial) bestPartial = partial;
+    }
+  }
+  if(bestPartial !== null) return bestPartial;
+
+  return fallbackScore(word, entry, answer);
+}
+
+function buildHintSequence(entry, answer){
+  return (entry.hints || []).slice();
+}
+
+let state = null;
+const HINT_BTN_DEFAULT_TEXT = '🔦 힌트 요청 (-60점)';
+let hintFlashTimeout = null;
+
+const setupNote = document.getElementById('setupNote');
+let currentStage = 'stage1';
+let rankTab = 'person';
+let rankReturnTo = 'setup';
+const RANK_KEY = 'ai-simun-rankings-v1';
+
+const playerFields = document.getElementById('playerFields');
+const playerName = document.getElementById('playerName');
+const playerDept = document.getElementById('playerDept');
+const playerDeptEtc = document.getElementById('playerDeptEtc');
+const playerYear = document.getElementById('playerYear');
+
+function togglePlayerFields(){
+  playerFields.classList.add('on');
+}
+playerDept.addEventListener('change', ()=>{
+  const etc = playerDept.value === '기타';
+  playerDeptEtc.style.display = etc ? 'block' : 'none';
+  if(!etc) playerDeptEtc.value = '';
+});
+
+function getPlayerDept(){
+  if(playerDept.value === '기타') return playerDeptEtc.value.trim();
+  return playerDept.value.trim();
+}
+
+function readPlayer(){
+  return {
+    name: playerName.value.trim(),
+    dept: getPlayerDept(),
+    year: playerYear.value.trim()
+  };
+}
+
+function playerId(p){
+  return [p.name, p.dept, p.year].map(s => String(s).replace(/\s+/g,'')).join('|');
+}
+
+function loadRankStore(){
+  try{
+    const raw = localStorage.getItem(RANK_KEY);
+    if(!raw) return { version:1, records:[] };
+    const data = JSON.parse(raw);
+    if(!data || !Array.isArray(data.records)) return { version:1, records:[] };
+    return { version:1, records: data.records };
+  }catch(e){
+    return { version:1, records:[] };
+  }
+}
+
+function saveRankStore(store){
+  localStorage.setItem(RANK_KEY, JSON.stringify(store));
+}
+
+function personalBests(records){
+  const map = new Map();
+  records.forEach(r=>{
+    const prev = map.get(r.pid);
+    if(!prev){ map.set(r.pid, r); return; }
+    if(r.score > prev.score){ map.set(r.pid, r); return; }
+    if(r.score === prev.score && r.elapsedSec < prev.elapsedSec) map.set(r.pid, r);
+  });
+  return [...map.values()].sort((a,b)=> b.score - a.score || a.elapsedSec - b.elapsedSec);
+}
+
+function groupRanks(bests, key){
+  const groups = new Map();
+  bests.forEach(r=>{
+    const k = r[key] || '미입력';
+    if(!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(r);
+  });
+  return [...groups.entries()].map(([label, list])=>{
+    const count = list.length;
+    const sum = list.reduce((s,x)=>s+x.score, 0);
+    const avg = Math.round(sum / count);
+    const best = Math.max(...list.map(x=>x.score));
+    return { label, count, avg, best };
+  }).sort((a,b)=> b.avg - a.avg || b.best - a.best || b.count - a.count);
+}
+
+function upsertRankRecord(record){
+  const store = loadRankStore();
+  const idx = store.records.findIndex(r => r.pid === record.pid);
+  if(idx === -1){
+    store.records.push(record);
+  } else {
+    const prev = store.records[idx];
+    if(record.score > prev.score || (record.score === prev.score && record.elapsedSec < prev.elapsedSec)){
+      store.records[idx] = record;
+    }
+  }
+  saveRankStore(store);
+  return personalBests(store.records).findIndex(r => r.pid === record.pid) + 1;
+}
+
+function renderRanking(){
+  const store = loadRankStore();
+  const bests = personalBests(store.records);
+  document.getElementById('rankMeta').textContent =
+    `기록 ${bests.length}명 · 이 PC 브라우저(localStorage)에 저장됩니다. 부스 중간에 JSON으로 백업하세요.`;
+
+  const body = document.getElementById('rankBody');
+  if(rankTab === 'person'){
+    if(!bests.length){
+      body.innerHTML = '<div class="rank-empty">아직 랭킹 기록이 없습니다. 2단계를 완료하면 여기에 올라갑니다.</div>';
+      return;
+    }
+    body.innerHTML = `<table class="rank-table">
+      <thead><tr><th>#</th><th>이름</th><th>학과</th><th>학년</th><th>점수</th><th>등급</th></tr></thead>
+      <tbody>${bests.map((r,i)=>`<tr>
+        <td class="pos">${i+1}</td>
+        <td>${escapeHtml(r.name)}</td>
+        <td>${escapeHtml(r.dept)}</td>
+        <td>${escapeHtml(r.year)}</td>
+        <td class="num">${r.score}</td>
+        <td>${escapeHtml(r.grade)}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+    return;
+  }
+
+  const rows = groupRanks(bests, rankTab === 'dept' ? 'dept' : 'year');
+  const head = rankTab === 'dept' ? '학과' : '학년';
+  if(!rows.length){
+    body.innerHTML = '<div class="rank-empty">아직 랭킹 기록이 없습니다.</div>';
+    return;
+  }
+  body.innerHTML = `<table class="rank-table">
+    <thead><tr><th>#</th><th>${head}</th><th>인원</th><th>평균</th><th>최고</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr>
+      <td class="pos">${i+1}</td>
+      <td>${escapeHtml(r.label)}</td>
+      <td>${r.count}</td>
+      <td class="num">${r.avg}</td>
+      <td class="num">${r.best}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function showSetup(){
+  document.getElementById('setup').style.display = 'block';
+  document.getElementById('game').classList.remove('on');
+  document.getElementById('end').classList.remove('on');
+  document.getElementById('rank').classList.remove('on');
+}
+
+function showRank(from){
+  rankReturnTo = from || 'setup';
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('game').classList.remove('on');
+  document.getElementById('end').classList.remove('on');
+  document.getElementById('rank').classList.add('on');
+  renderRanking();
+}
+
+function refreshSetupNote(){
+  setupNote.textContent = '워밍업 후 바로 랭킹전(3분·15회)이 이어집니다. 단어는 무작위로 배정되며 정답은 화면에 나오지 않습니다.';
+  togglePlayerFields();
+}
+refreshSetupNote();
+
+document.getElementById('startBtn').addEventListener('click', ()=> startRound('stage1'));
+document.getElementById('continueBtn').addEventListener('click', ()=> startRound('stage2'));
+
+let timerInterval = null;
+
+let sessionPlayer = null;
+
+function startRound(stage){
+  currentStage = stage || 'stage1';
+  const player = sessionPlayer || readPlayer();
+  if(!player.name || !player.dept || !player.year){
+    setupNote.textContent = '이름·학과·학년을 모두 입력한 뒤 시작해 주세요.';
+    return;
+  }
+  sessionPlayer = player;
+
+  const stageCfg = DATA[currentStage];
+  const answer = pickRandomAnswer(currentStage);
+  const entry = stageCfg.sets[answer];
+  const winAliases = entry.aliases || [];
+
+  state = {
+    stage: currentStage,
+    answer,
+    entry,
+    winAliases,
+    tries: 0,
+    hints: 0,
+    hintSequence: buildHintSequence(entry, answer),
+    hintSeqIndex: 0,
+    wordNo: wordNumber(currentStage, answer),
+    guesses: [],
+    startTime: Date.now(),
+    timeLimitSec: stageCfg.timeLimitSec,
+    tryLimit: stageCfg.tryLimit,
+    finished: false,
+    player
+  };
+
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('end').classList.remove('on');
+  document.getElementById('game').classList.add('on');
+  document.getElementById('giveupConfirm').style.display = 'none';
+  document.getElementById('stageLabel').textContent = currentStage === 'stage1' ? '1단계' : '2단계';
+  document.getElementById('wordNoVal').textContent = `${state.wordNo}번`;
+  document.getElementById('transcriptBody').innerHTML = '<div class="empty-transcript">아직 검색한 단어가 없습니다.</div>';
+  document.getElementById('bestPct').textContent = '0%';
+  document.getElementById('meterFill').style.width = '0%';
+  document.getElementById('triesVal').textContent = '0';
+  document.getElementById('hintsVal').textContent = '0';
+  document.getElementById('guessInput').value = '';
+  document.getElementById('guessInput').focus();
+
+  if(hintFlashTimeout){ clearTimeout(hintFlashTimeout); hintFlashTimeout = null; }
+  const hintBtnEl = document.getElementById('hintBtn');
+  hintBtnEl.textContent = HINT_BTN_DEFAULT_TEXT;
+  hintBtnEl.classList.remove('hint-flash');
+
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 250);
+  updateTimer();
+}
+
+function updateTimer(){
+  if(!state || state.finished) return;
+  const elapsedSec = (Date.now() - state.startTime) / 1000;
+  const timeVal = document.getElementById('timeVal');
+
+  if(state.timeLimitSec){
+    const remain = Math.max(0, state.timeLimitSec - elapsedSec);
+    timeVal.textContent = fmtTime(remain);
+    timeVal.classList.toggle('warn', remain <= 20);
+    if(remain <= 0){
+      endRound('fail_time');
+    }
+  } else {
+    timeVal.textContent = fmtTime(elapsedSec);
+  }
+}
+
+function fmtTime(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60).toString().padStart(2,'0');
+  const s = (sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function submitGuess(){
+  if(!state || state.finished) return;
+  const input = document.getElementById('guessInput');
+  const word = input.value.trim();
+  if(!word) return;
+  input.value = '';
+
+  state.tries++;
+  document.getElementById('triesVal').textContent = state.tries;
+
+  let score;
+  let isWin = false;
+
+  const normInput = normalizeWord(word);
+  if(normInput === normalizeWord(state.answer) || state.winAliases.some(a => normalizeWord(a) === normInput)){
+    score = 100;
+    isWin = true;
+  } else {
+    score = scoreGuess(word, state.entry, state.answer);
+  }
+
+  state.guesses.push({word, score, isHint:false, isWin});
+  renderTranscript();
+  updateBest();
+
+  if(isWin){
+    endRound('success');
+    return;
+  }
+
+  if(state.tryLimit && state.tries >= state.tryLimit){
+    endRound('fail_tries');
+  }
+}
+
+function flashSearchButton(){
+  const btn = document.getElementById('searchBtn');
+  btn.classList.add('pressed');
+  setTimeout(()=> btn.classList.remove('pressed'), 140);
+}
+
+document.getElementById('searchBtn').addEventListener('click', ()=>{
+  flashSearchButton();
+  submitGuess();
+});
+
+document.getElementById('guessInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    flashSearchButton();
+    submitGuess();
+  }
+});
+
+document.getElementById('hintBtn').addEventListener('click', ()=>{
+  if(!state || state.finished) return;
+  const guessedWords = new Set(state.guesses.map(g=>g.word));
+
+  let next = null;
+  while(state.hintSeqIndex < state.hintSequence.length){
+    const candidate = state.hintSequence[state.hintSeqIndex];
+    state.hintSeqIndex++;
+    if(!guessedWords.has(candidate)){
+      next = candidate;
+      break;
+    }
+  }
+
+  if(!next){
+    const btn = document.getElementById('hintBtn');
+    if(hintFlashTimeout) clearTimeout(hintFlashTimeout);
+    btn.textContent = '❌ 더 이상 힌트가 없습니다';
+    btn.classList.add('hint-flash');
+    hintFlashTimeout = setTimeout(()=>{
+      btn.textContent = HINT_BTN_DEFAULT_TEXT;
+      btn.classList.remove('hint-flash');
+      hintFlashTimeout = null;
+    }, 1500);
+    return;
+  }
+  state.hints++;
+  document.getElementById('hintsVal').textContent = state.hints;
+  state.guesses.push({
+    word: next,
+    score: scoreGuess(next, state.entry, state.answer),
+    isHint:true,
+    isWin:false
+  });
+  renderTranscript();
+  updateBest();
+});
+
+document.getElementById('giveupBtn').addEventListener('click', ()=>{
+  if(!state || state.finished) return;
+  document.getElementById('giveupConfirm').style.display = 'block';
+});
+
+document.getElementById('giveupNo').addEventListener('click', ()=>{
+  document.getElementById('giveupConfirm').style.display = 'none';
+});
+
+document.getElementById('giveupYes').addEventListener('click', ()=>{
+  document.getElementById('giveupConfirm').style.display = 'none';
+  endRound('fail_giveup');
+});
+
+function updateBest(){
+  const best = state.guesses.length ? Math.max(...state.guesses.map(g=>g.score)) : 0;
+  const clamped = Math.max(0, Math.min(100, best));
+  document.getElementById('bestPct').textContent = `${Math.max(0,best)}%`;
+  document.getElementById('meterFill').style.width = clamped + '%';
+}
+
+function renderTranscript(){
+  const body = document.getElementById('transcriptBody');
+  const sorted = [...state.guesses].sort((a,b)=>b.score - a.score);
+  body.innerHTML = '';
+  sorted.forEach(g=>{
+    const row = document.createElement('div');
+    row.className = 't-row' + (g.isWin ? ' hit' : '') + (g.isHint ? ' hint-row' : '');
+    row.innerHTML = `<span class="word">${g.isHint ? '💡 ' : ''}${escapeHtml(g.word)}</span><span class="score">${g.score}%</span>`;
+    body.appendChild(row);
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function descLine(){
+  const d = (state.entry && state.entry.description) || '';
+  return d ? `해설 &nbsp;&nbsp;&nbsp;&nbsp;: <b>${escapeHtml(d)}</b><br>` : '';
+}
+
+function endRound(result){
+  state.finished = true;
+  clearInterval(timerInterval);
+
+  const elapsedSec = (Date.now() - state.startTime) / 1000;
+  document.getElementById('game').classList.remove('on');
+  const endEl = document.getElementById('end');
+  endEl.classList.add('on');
+
+  if(state.stage === 'stage1'){
+    const isGiveup = (result === 'fail_giveup');
+    document.getElementById('endHeader').textContent = isGiveup ? '// 워밍업 포기' : '// 워밍업 종료';
+    document.getElementById('gradeChar').className = 'grade ' + (result === 'success' ? 'A' : 'F');
+    document.getElementById('gradeChar').textContent = result === 'success' ? 'CLEAR' : (isGiveup ? '포기' : 'END');
+    document.getElementById('scoreLine').textContent = `시도 ${state.tries}회 · ${fmtTime(elapsedSec)} 소요`;
+    document.getElementById('breakdown').innerHTML = isGiveup
+      ? `${descLine()}워밍업을 넘겼습니다. 이어서 랭킹전(3분·15회)을 시작합니다.`
+      : `${descLine()}워밍업은 채점하지 않습니다. 이어서 랭킹전(3분·15회)을 시작합니다.`;
+    document.getElementById('rewardLine').style.display = 'none';
+    document.getElementById('rankSavedNote').textContent = '';
+    document.getElementById('viewRankAfterBtn').style.display = 'none';
+    document.getElementById('continueBtn').style.display = 'block';
+    document.getElementById('nextBtn').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('continueBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'block';
+  document.getElementById('rewardLine').style.display = 'block';
+
+  let score = 0;
+  let failed = (result !== 'success');
+
+  if(!failed){
+    score = Math.max(0, Math.round(
+      1000 - (state.tries * 60) - (elapsedSec * 2.5) - (state.hints * 60)
+    ));
+  }
+  if(elapsedSec > 180 || state.tries > 15){
+    failed = true; score = 0;
+  }
+
+  let grade, gradeClass, rewardText;
+  if(result === 'fail_giveup'){
+    grade = '포기'; gradeClass = 'F';
+    rewardText = '🚩 포기하셨습니다! 다음 기회에 다시 도전해보세요.';
+  } else if(failed){
+    grade = '실패'; gradeClass = 'F';
+    rewardText = '안타깝네요 — 다음 기회에 다시 도전해보세요.';
+  } else if(score >= 800 && state.tries <= 5){
+    grade = 'S'; gradeClass = 'S';
+    rewardText = '🏆 S등급 — 배민 5천원 상품권';
+  } else if(score >= 600 && state.tries <= 10){
+    grade = 'A'; gradeClass = 'A';
+    rewardText = '🥈 A등급 — 배민 2천원 상품권';
+  } else if(score >= 1 && state.tries <= 15){
+    grade = 'B'; gradeClass = 'B';
+    rewardText = '🎖️ B등급 — 따봉 칭찬';
+  } else {
+    grade = '실패'; gradeClass = 'F';
+    rewardText = '안타깝네요 — 다음 기회에 다시 도전해보세요.';
+  }
+
+  document.getElementById('endHeader').textContent = (result === 'fail_giveup') ? '// 포기 접수' : '// 심문 종료 — 결과 보고서';
+  document.getElementById('gradeChar').className = 'grade ' + gradeClass;
+  document.getElementById('gradeChar').textContent = grade;
+  document.getElementById('scoreLine').textContent = `SCORE ${score}`;
+  document.getElementById('breakdown').innerHTML = `
+    정답 단어 &nbsp;: <b>${escapeHtml(state.answer)}</b><br>
+    ${descLine()}
+    시도 횟수 &nbsp;: <b>${state.tries}회</b> (-${state.tries*60}점)<br>
+    소요 시간 &nbsp;: <b>${fmtTime(elapsedSec)}</b> (-${Math.round(elapsedSec*2.5)}점)<br>
+    힌트 사용 &nbsp;: <b>${state.hints}회</b> (-${state.hints*60}점)
+  `;
+  document.getElementById('rewardLine').textContent = rewardText;
+
+  if(state.player){
+    const rankPos = upsertRankRecord({
+      pid: playerId(state.player),
+      name: state.player.name,
+      dept: state.player.dept,
+      year: state.player.year,
+      score,
+      grade,
+      tries: state.tries,
+      hints: state.hints,
+      elapsedSec: Math.round(elapsedSec),
+      answer: state.answer,
+      result,
+      at: Date.now()
+    });
+    document.getElementById('rankSavedNote').textContent =
+      score > 0
+        ? `랭킹 기록됨 — 개인 ${rankPos}위 (같은 사람이면 최고 점수만 유지)`
+        : `기록이 저장되었습니다. 성공 시 점수가 개인 최고로 반영됩니다.`;
+    document.getElementById('viewRankAfterBtn').style.display = 'block';
+  } else {
+    document.getElementById('rankSavedNote').textContent = '';
+    document.getElementById('viewRankAfterBtn').style.display = 'none';
+  }
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  sessionPlayer = null;
+  showSetup();
+  refreshSetupNote();
+});
+
+document.getElementById('openRankBtn').addEventListener('click', ()=> showRank('setup'));
+document.getElementById('viewRankAfterBtn').addEventListener('click', ()=> showRank('end'));
+document.getElementById('rankBackBtn').addEventListener('click', ()=>{
+  document.getElementById('rank').classList.remove('on');
+  if(rankReturnTo === 'end'){
+    document.getElementById('end').classList.add('on');
+  } else {
+    showSetup();
+  }
+});
+
+document.querySelectorAll('#rank .stage-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#rank .stage-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    rankTab = btn.dataset.ranktab;
+    renderRanking();
+  });
+});
+
+document.getElementById('exportRankBtn').addEventListener('click', ()=>{
+  const store = loadRankStore();
+  const blob = new Blob([JSON.stringify(store, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ai-simun-ranking-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+document.getElementById('importRankBtn').addEventListener('click', ()=>{
+  document.getElementById('importRankFile').click();
+});
+
+document.getElementById('importRankFile').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.records)) throw new Error('format');
+      const store = loadRankStore();
+      const byPid = new Map(store.records.map(r => [r.pid, r]));
+      data.records.forEach(r=>{
+        if(!r || !r.pid || typeof r.score !== 'number') return;
+        const prev = byPid.get(r.pid);
+        if(!prev || r.score > prev.score || (r.score === prev.score && r.elapsedSec < prev.elapsedSec)){
+          byPid.set(r.pid, r);
+        }
+      });
+      saveRankStore({ version:1, records: [...byPid.values()] });
+      renderRanking();
+    }catch(err){
+      alert('랭킹 JSON 형식을 읽을 수 없습니다.');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+const resetPanel = document.getElementById('resetPanel');
+const resetAnswer = document.getElementById('resetAnswer');
+
+function closeResetPanel(){
+  resetPanel.classList.remove('on');
+  resetAnswer.value = '';
+}
+
+document.getElementById('clearRankBtn').addEventListener('click', ()=>{
+  resetPanel.classList.add('on');
+  resetAnswer.focus();
+});
+
+document.getElementById('resetNo').addEventListener('click', closeResetPanel);
+
+document.getElementById('resetYes').addEventListener('click', ()=>{
+  if(resetAnswer.value.trim() !== '늘빛'){
+    resetAnswer.value = '';
+    resetAnswer.placeholder = '비밀번호가 올바르지 않습니다';
+    resetAnswer.focus();
+    return;
+  }
+  saveRankStore({ version:1, records:[] });
+  renderRanking();
+  closeResetPanel();
+  document.getElementById('rankMeta').textContent = '랭킹이 리셋되었습니다. 이 PC 브라우저(localStorage)에 저장됩니다.';
+});
+
+resetAnswer.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    document.getElementById('resetYes').click();
+  }
+});
+</script>
+
+</body>
+</html>
