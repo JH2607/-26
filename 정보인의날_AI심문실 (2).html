@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>AI 심문실 — 워들 & 꼬맨틀 챌린지</title>
+<style>
+  :root{
+    --bg:#0c0c0e;
+    --panel:#1a1a1d;
+    --panel-line:#333338;
+    --ink:#e9e6dc;
+    --ink-dim:#8c8a84;
+    --caution:#f2c14e;
+    --caution-dim:#7a6425;
+    --alert:#c0392b;
+    --spotlight:#fdf6e3;
+    --mono: ui-monospace, 'SFMono-Regular', Consolas, 'Courier New', monospace;
+    --sans: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(253,246,227,0.06), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow-x:hidden;
+  }
+  .tape{
+    height:14px;
+    width:100%;
+    background: repeating-linear-gradient(45deg, var(--caution) 0 18px, #1a1a1a 18px 36px);
+    flex-shrink:0;
+    opacity:0.85;
+  }
+  header.casefile{
+    padding:18px 20px 10px;
+    border-bottom:1px solid var(--panel-line);
+    text-align:center;
+  }
+  .case-id{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+  }
+  .case-title{
+    font-size:22px;
+    font-weight:800;
+    margin:4px 0 2px;
+    letter-spacing:-0.01em;
+  }
+  .case-sub{
+    font-size:13px;
+    color:var(--ink-dim);
+  }
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:16px;
+    gap:14px;
+    max-width:520px;
+    width:100%;
+    margin:0 auto;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    padding:16px;
+  }
+  .panel h2{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.06em;
+    color:var(--caution);
+    margin:0 0 12px;
+    font-weight:600;
+  }
+  .stage-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .stage-btn{
+    flex:1;
+    padding:12px 8px;
+    background:#141416;
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    color:var(--ink-dim);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:14px;
+    text-align:center;
+  }
+  .stage-btn.active{
+    border-color:var(--caution);
+    color:var(--caution);
+    background:#1f1a0d;
+  }
+  select, .select-fake{
+    width:100%;
+    background:#141416;
+    color:var(--ink);
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    padding:12px;
+    font-family:var(--mono);
+    font-size:14px;
+    margin-bottom:10px;
+  }
+  .hint-note{
+    font-size:12px;
+    color:var(--ink-dim);
+    line-height:1.6;
+    margin-top:6px;
+  }
+  .btn{
+    display:block;
+    width:100%;
+    padding:14px;
+    border-radius:4px;
+    border:none;
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:15px;
+    cursor:pointer;
+  }
+  .btn-primary{ background:var(--caution); color:#141414; }
+  .btn-ghost{ background:transparent; color:var(--ink-dim); border:1px solid var(--panel-line); margin-top:8px;}
+  .btn-danger{ background:transparent; color:var(--alert); border:1px solid var(--alert); }
+  #game{ display:none; }
+  #game.on{ display:flex; flex-direction:column; gap:14px;}
+  .statusbar{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:13px;
+    padding:0 2px;
+  }
+  .statusbar .label{ color:var(--ink-dim); font-size:10px; letter-spacing:0.05em; display:block;}
+  .statusbar .val{ font-size:18px; font-weight:700;}
+  .val.warn{ color:var(--alert); }
+  .meter-wrap{
+    padding: 4px 2px 2px;
+  }
+  .meter-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-family:var(--mono);
+    margin-bottom:6px;
+  }
+  .meter-label .meter-title{
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:0.05em;
+  }
+  .meter-label .meter-pct{
+    font-size:20px;
+    font-weight:800;
+    color:var(--caution);
+  }
+  .meter-track{
+    background:#141416;
+    border:1px solid var(--panel-line);
+    border-radius:999px;
+    height:12px;
+    overflow:hidden;
+  }
+  .meter-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--caution-dim), var(--caution));
+    width:0%;
+    transition: width 0.25s ease;
+  }
+  .guess-form{ display:flex; gap:8px; }
+  .guess-form input{
+    flex:1;
+    background:#141416;
+    border:1px solid var(--panel-line);
+    color:var(--ink);
+    border-radius:4px;
+    padding:14px;
+    font-size:16px;
+    font-family:var(--sans);
+  }
+  .guess-form input:focus{ outline:2px solid var(--caution); border-color:var(--caution);}
+  .guess-form button{
+    background:var(--caution);
+    border:none;
+    color:#141414;
+    font-weight:800;
+    border-radius:4px;
+    padding:0 18px;
+    font-size:14px;
+    transition: filter 0.08s ease;
+  }
+  .guess-form button.pressed{
+    filter: brightness(0.75);
+  }
+  .confirm-panel{
+    text-align:center;
+  }
+  .confirm-panel .confirm-msg{
+    font-weight:700;
+    margin-bottom:12px;
+    font-size:14px;
+  }
+  .hint-flash{
+    color: var(--alert) !important;
+  }
+  .actions-row{ display:flex; gap:8px; }
+  .actions-row button{ flex:1; }
+  .btn-hint{
+    background:transparent;
+    border:1px dashed var(--caution-dim);
+    color:var(--caution);
+    padding:10px;
+    border-radius:4px;
+    font-weight:700;
+    font-size:13px;
+  }
+  .transcript{
+    font-family:var(--mono);
+    font-size:19px;
+  }
+  .t-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    height:44px;
+    padding:0 4px;
+    border-bottom:1px solid #232326;
+  }
+  .t-row:first-child{ color:var(--ink-dim); font-size:13px; border-bottom:1px solid var(--panel-line); height:32px;}
+  .t-row .word{
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:68%;
+  }
+  .t-row .score{ font-weight:800; }
+  .t-row.hit .word, .t-row.hit .score{ color:var(--caution); }
+  .t-row.hint-row .word{ color:#8ab0d4; font-style:italic; }
+  .empty-transcript{ color:var(--ink-dim); font-size:12px; padding:8px 4px;}
+  #end{ display:none; text-align:center; }
+  #end.on{ display:block; }
+  .grade{
+    font-size:64px;
+    font-weight:900;
+    font-family:var(--mono);
+    line-height:1;
+    margin:6px 0;
+  }
+  .grade.S{ color:var(--caution); }
+  .grade.A{ color:#9fd3a0; }
+  .grade.B{ color:#8ab0d4; }
+  .grade.F{ color:var(--alert); }
+  .score-big{ font-family:var(--mono); font-size:20px; color:var(--ink-dim); margin-bottom:14px;}
+  .breakdown{ text-align:left; font-family:var(--mono); font-size:16px; color:var(--ink-dim); margin:14px 0; line-height:2.1;}
+  .breakdown b{ color:var(--ink); }
+  .reward{
+    background:#141416;
+    border:1px solid var(--caution-dim);
+    border-radius:4px;
+    padding:14px;
+    margin:14px 0;
+    font-weight:700;
+  }
+  footer{
+    text-align:center;
+    padding:14px;
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--ink-dim);
+    letter-spacing:0.04em;
+  }
+
+  /* ---------- 데스크톱 / 큰 화면 (노트북 등) ---------- */
+  @media (min-width: 900px){
+    main{ max-width: 820px; padding: 32px 24px; gap: 20px; }
+    .case-title{ font-size: 30px; }
+    .case-sub{ font-size: 15px; }
+    header.casefile{ padding: 26px 32px 14px; }
+    .panel{ padding: 24px; }
+    .meter-label .meter-pct{ font-size: 28px; }
+    .meter-label .meter-title{ font-size: 13px; }
+    .meter-track{ height: 16px; }
+    .guess-form input{ font-size: 18px; padding: 16px; }
+    .guess-form button{ font-size: 16px; padding: 0 26px; }
+    .stage-btn{ font-size: 16px; padding: 14px 10px; }
+    .btn{ font-size: 16px; padding: 16px; }
+    .transcript{ font-size: 15px; }
+    .grade{ font-size: 84px; }
+    .score-big{ font-size: 24px; }
+    .breakdown{ font-size: 15px; }
+    .statusbar .val{ font-size: 22px; }
+    /* 힌트 기록을 2열로 넉넉하게 */
+    #transcriptBody{ max-height: 360px; overflow-y: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tape"></div>
+
+<header class="casefile">
+  <div class="case-id">CASE FILE // 정보인의 날 — AI 검증 프로토콜</div>
+  <div class="case-title">AI 심문실</div>
+  <div class="case-sub">폭주 직전의 AI, 그 마음속 단어를 추적하십시오.</div>
+</header>
+
+<main>
+
+  <section class="panel" id="setup">
+    <h2>스태프 설정 // STAFF ONLY</h2>
+
+    <div class="stage-toggle">
+      <div class="stage-btn active" data-stage="stage1">1단계 · 워밍업</div>
+      <div class="stage-btn" data-stage="stage2">2단계 · 랭킹전</div>
+    </div>
+
+    <label class="hint-note">단어 세트 (참가자 종료 후 매번 바꿔주세요)</label>
+    <select id="wordsetSelect"></select>
+
+    <div class="hint-note" id="setupNote"></div>
+
+    <button class="btn btn-primary" id="startBtn" style="margin-top:14px;">참가자 입장 — 심문 시작</button>
+  </section>
+
+  <section id="game">
+    <div class="statusbar">
+      <div><span class="label">STAGE</span><span class="val" id="stageLabel">1단계</span></div>
+      <div><span class="label">TIME</span><span class="val" id="timeVal">00:00</span></div>
+      <div><span class="label">시도</span><span class="val" id="triesVal">0</span></div>
+      <div><span class="label">힌트</span><span class="val" id="hintsVal">0</span></div>
+    </div>
+
+    <div class="meter-wrap">
+      <div class="meter-label">
+        <span class="meter-title">최고 유사도</span>
+        <span class="meter-pct" id="bestPct">0%</span>
+      </div>
+      <div class="meter-track">
+        <div class="meter-fill" id="meterFill"></div>
+      </div>
+    </div>
+
+    <div class="guess-form">
+      <input type="text" id="guessInput" placeholder="단어를 검색하십시오" autocomplete="off" />
+      <button type="button" id="searchBtn">검색</button>
+    </div>
+
+    <div class="actions-row">
+      <button type="button" class="btn-hint" id="hintBtn">🔦 힌트 요청 (-150점)</button>
+      <button type="button" class="btn-hint" id="giveupBtn" style="border-color:var(--alert); color:var(--alert);">🚩 포기</button>
+    </div>
+
+    <div class="panel confirm-panel" id="giveupConfirm" style="display:none;">
+      <div class="confirm-msg">정말 포기하시겠습니까?</div>
+      <div class="actions-row">
+        <button type="button" class="btn-hint" id="giveupYes" style="border-color:var(--alert); color:var(--alert);">예, 포기합니다</button>
+        <button type="button" class="btn-hint" id="giveupNo">아니오, 계속할게요</button>
+      </div>
+    </div>
+
+    <div class="panel transcript">
+      <h2>심문 기록 // TRANSCRIPT</h2>
+      <div class="t-row"><span>단어</span><span>유사도</span></div>
+      <div id="transcriptBody">
+        <div class="empty-transcript">아직 검색한 단어가 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="end">
+    <h2 id="endHeader">// 심문 종료</h2>
+    <div class="grade" id="gradeChar">-</div>
+    <div class="score-big" id="scoreLine">SCORE 0</div>
+    <div class="breakdown" id="breakdown"></div>
+    <div class="reward" id="rewardLine"></div>
+    <button class="btn btn-primary" id="nextBtn">다음 참가자 (설정으로)</button>
+  </section>
+
+</main>
+
+<footer>NO INTERNET REQUIRED — 오프라인 백업 모드로 동작합니다</footer>
+
+<script>
+/* ============================================================
+   단어 데이터
+   - TABLE   : 참가자가 아무 단어나 입력했을 때 채점에 쓰이는 전체 유사도표
+   - HINTS   : 힌트 버튼 전용 후보 (70점 이상만) — 오름차순으로 자동 정렬되어
+               낮은 점수부터 하나씩 공개됨
+   - ALIASES : 정답과 동일하게 취급할 다른 표기 — 입력 시 100% 정답 처리
+============================================================ */
+const DATA = {
+  stage1: {
+    label: "1단계 · 워밍업",
+    timeLimitSec: null,
+    tryLimit: null,
+    sets: {
+      "심리학과": {
+        연세대:85, 연대:80, 교류:75, 심리:70, 상담:55, 인지심리:60, 행동심리:58, 뇌과학:62,
+        신촌:78, 독수리:65, 심리검사:45, 상담심리:48, 임상심리:44, 사회심리:42, 발달심리:40,
+        실험:42, 설문조사:40, 심리학개론:55, 인지과학:58, 뇌:50, 감정:35, 스트레스:30,
+        MBTI:38, 성격유형:36, 상담사:34, 대학교류:60, 학과교류:62, 공동수업:55, 연합행사:50,
+        결심:50, 교류학과:68, 협약:45, 자매학과:52, 공동프로젝트:48, 세미나:40, 심리상담센터:44,
+        "함동응원":90, "독수리들":83, "고인연심":92, "교류반":97, "심리학부":99, "결:심":96
+      },
+      "펄스": {
+        학생회:99, 인공지능학과:80, 총학생회:60, 부스:65, 행사:70, 정보인의날:75, 학과행사:65,
+        축제부스:58, "컴데인 운영진":93, 스태프:58, 임원진:52, 회장:48, 부회장:45, 기획:50,
+        홍보:45, 로고:40, 슬로건:45, 단합:38, 새내기:50, 신입생:52, 오티:40, 엠티:38,
+        학생자치:48, 심장박동:45, 맥박:42, 리듬:38, 에너지:35, 활기:38, 인공지능:45, 딥러닝:20,
+        정보대:89
+      },
+      "우정정보관": {
+        정보대:85, 강의실:79, 건물:60, 컴퓨터실:65, 정보관:99, 컴퓨터공학과:55, 인공지능학과:60,
+        소프트웨어학과:55, 데이터과학과:50, 강의동:55, 세미나실:40, 랩실:45, 연구실:48,
+        스터디룸:42, 정문:30, 캠퍼스:38, 신축건물:35, 안암캠퍼스:45, 정보대후문:40,
+        하나스퀘어:35, 중앙광장:30, IT:50, 전산실:48, 서버실:40, 프로젝터:28, 노트북:25,
+        딥러닝:20, 알고리즘:20, 자료구조:22, 라운지:70, 과방:97
+      },
+      "알고리즘": {
+        자료구조:60, 코딩:80, 프로그래밍:82, 정렬:78, 탐색:75, 그래프:68, 재귀:65, 동적계획법:72,
+        DP:70, 그리디:66, 시간복잡도:70, 백준:78, 코딩테스트:80, 문제풀이:75, 파이썬:52,
+        "C++":50, 자바:48, 개발자:55, 취업:40, 인공지능:45, 딥러닝:40, 수학:45, 논리:55,
+        이진탐색:65, 완전탐색:60, 백트래킹:58, 큐:50, 스택:52, 트리:55, 해시:56, 힙:54,
+        조교:42, 과제:38, 밤샘:30, 스터디:35, 전공:40, 정보대:38, 학점:32, 시험:28, 강의:35,
+        코테준비:60, PS:58, 온라인저지:55, 프로그래머스:52, 인턴:30, 면접:28, 알고리즘문제:70,
+        교수님:48, 박성빈:96, 유용재:96, "데이터 정렬":78
+      },
+      "정이정정": {
+        정경대학:96, 이과대학:96, 정보대학:75, 정보보호대학:75, 새터:78, 새내기배움터:72,
+        연합새터:90, "4개 단과대":95, 학과연합:68, 단과대연합:70, 오리엔테이션:55,
+        신입생:60, 새내기:58, 조편성:45, 장기자랑:40, 게임:35, 밤샘:32, 버스:34, 리조트:38,
+        대학생활:42, 단체티:44, 조모임:40, 사회자:30, 학생회연합:60, 연합행사:55, 정보보호:50,
+        이과계열:40, 사회과학:38, 자연과학:36, 컴퓨터:20, 인공지능학과:25
+      },
+      "고인돌": {
+        인공지능학과:75, 꿀팁:85, 노션:88, "돌려보는 꿀팁":93, 정보공유:60, 학과공지:55,
+        학과행사:50, 학과정보:58, 필독:45, 신입생가이드:52, 수강꿀팁:65, 시간표:40,
+        학점꿀팁:48, 교수님정보:62, 강의후기:58, 족보:68, 선배후기:60, 학과위키:72,
+        공유문서:56, 링크:35, 페이지:38, 학과홈페이지:44, 커리큘럼:42, 필수과목:40,
+        전공꿀팁:66, 학과생활:46, 학과문화:44, 신입생필수:50, 학과자료:54, 정리자료:52,
+        노트정리:36, 자료모음:58, 학과전통:38, 위키피디아:34, 학과인트라넷:48
+      },
+      "GPU": {
+        그래픽카드:70, 병렬연산:75, 딥러닝서버:78, 엔비디아:83, CUDA:88, 지포스:92,
+        그래픽처리장치:97, CPU:55, 반도체:60, VRAM:65, A100:82, H100:85, 텐서코어:70,
+        서버:45, 컴퓨터부품:60, 그래픽:55, 렌더링:52, 게이밍:48, 게임그래픽:50, 클럭속도:44,
+        쿨러:38, 발열:36, 전력소모:40, 슈퍼컴퓨터:58, 머신러닝서버:66, 딥러닝학습:64,
+        인공지능:60, 병렬처리:74, 연산장치:62, 반도체칩:58, 그래픽연산:60, "3D렌더링":54,
+        게임그래픽카드:56, AMD:50, 라데온:48, 인텔:40, 컴퓨터하드웨어:56, 컴퓨터그래픽스:56,
+        컴퓨터:50, 컴퓨터구조:72, 하드웨어:65, 부품:48, 컴퓨터부속:55, 컴퓨터사양:58,
+        컴퓨터성능:60, 사양:45, 성능:42, 연산능력:64, 컴퓨팅:58
+      }
+    },
+    hints: {
+      "심리학과":  {"독수리들":83, "함동응원":90, "고인연심":92, "결:심":96, "교류반":97, "심리학부":99},
+      "펄스":     {정보인의날:75, 정보대:89, "컴데인 운영진":93, 학생회:99},
+      "우정정보관":  {라운지:70, 강의실:79, 정보대:85, 과방:97},
+      "알고리즘":   {"데이터 정렬":78, 코딩테스트:80, 프로그래밍:82, 박성빈:96, 유용재:96},
+      "정이정정":   {새터:78, 연합새터:90, "4개 단과대":95, 정경대학:96, 이과대학:96},
+      "고인돌":    {인공지능학과:75, 꿀팁:85, 노션:88, "돌려보는 꿀팁":93},
+      "GPU":     {그래픽카드:70, 병렬연산:75, 딥러닝서버:78, 엔비디아:83, CUDA:88, 지포스:92, 그래픽처리장치:97}
+    },
+    aliases: {
+      "펄스": ["pulse", "Pulse", "PULSE"]
+    }
+  },
+  stage2: {
+    label: "2단계 · 랭킹전",
+    timeLimitSec: 180,
+    tryLimit: 15,
+    sets: {
+      "호랑이": {
+        고려대:90, 호랑이상:80, 크림슨:55, 마스코트:85, 응원단:65, 안암:40, 학교:45, 캠퍼스:42,
+        상징:70, 동물:60, 맹수:68, 줄무늬:62, 정글:45, 사자:55, 표범:50, 야생:48, 힘:40,
+        용맹:58, 응원가:52, 응원:50, 축제:35, 정문:38, 동상:66, 조형물:60, 명물:64, 축구:20,
+        체육대회:30, 과잠:25, 정보대:15, 컴퓨터:5, 파이팅:45, 정문호랑이상:72, 사진스팟:48,
+        포토존:48, 조각상:60, 청동:45, 랜드마크:55, 아이콘:50, 굿즈:40, 인형:48, 캐릭터:52,
+        동물원:30, 야수:45, 발톱:38, 이빨:35, 포효:40, 정글의왕:50, 백수의왕:48, 고연전:40,
+        입실렌티:30, 김종국:95, 독수리:75
+      },
+      "크림슨": {
+        고려대:75, 색깔:97, 빨강:75, 상징색:78, 과잠:90, 응원:55, 유니폼:60, 티셔츠:50, 로고:62,
+        학교색:82, 스쿨컬러:76, 붉은색:72, 와인색:55, 자주색:50, 깃발:45, 배너:42, 응원단:48,
+        정문:30, 호랑이:40, 축제:32, 굿즈:44, 후드:46, 야구:25, 축구:22, 정보대:15, 인공지능:8,
+        KU:75, 학교브랜드:60, 단체티:58, 과잠색깔:65, 응원티:55, 대학상징:65, 브랜드컬러:58,
+        스쿨스피릿:48, 자부심:35, 굿즈컬러:45, 로고컬러:50, 마스코트:35, 고연전:38, 입실렌티:28
+      },
+      "입실렌티": {
+        축제:85, 봄축제:80, 대동제:70, 콘서트:72, 가수:68, 라인업:70, 무대:60, 응원:50, 부스:55,
+        주점:58, 잔디밭:50, 본관앞:48, 밤샘:35, 술:40, 치킨:35, 야광봉:45, 떼창:55, 공연:65,
+        아이돌:58, 초청가수:62, 티켓팅:48, 인파:40, 인산인해:38, 즐거움:30, 낭만:35, 대학생활:40,
+        추억:35, 캠퍼스축제:65, 축제기간:55, 고연전:45, 참살이길:38, 부스운영:50, 학생회:55,
+        총학생회:58, 홍보:35, 티켓:45, 응원단공연:50, 불꽃놀이:45, 펄스:30, 정보인의날:32,
+        안암:30, 정문:28, 봄:50, 녹지운동장:93, 응원단:83
+      },
+      "고연전": {
+        연고전:85, 정기전:80, 스포츠:65, 축구:89, 야구:92, 농구:91, 럭비:55, 응원전:75,
+        연세대:70, 라이벌:80, 승부:55, 우승:48, 응원단:65, 치어리딩:58, 카드섹션:60, 함성:50,
+        열정:45, 자부심:48, 잠실:40, 경기장:52, 승리:50, 패배:35, 전통:45, 대학스포츠:45,
+        응원문화:60, 떼창:48, 응원가:58, 입실렌티:45, 참살이길:30, 축제:50, 함성소리:48,
+        응원석:52, 티켓:35, 학교자부심:48, 정문:28, 크림슨:38, 호랑이:40, 신촌:35, 아이스하키:90
+      },
+      "자료구조": {
+        알고리즘:60, 배열:75, 리스트:75, 스택:78, 큐:76, 트리:80, 그래프:70, 해시:72, 정렬:65,
+        탐색:65, 연결리스트:78, 이진트리:76, 힙:70, 재귀:60, 포인터:68, 메모리:55, "C언어":58,
+        자바:50, 파이썬:45, 코딩:60, 프로그래밍:65, 시간복잡도:62, 공간복잡도:58, 빅오:60,
+        컴퓨터공학:50, 전공필수:65, 과제:40, 팀플:35, 시험:30, 족보:38, 조교:45, 강의:42,
+        학점:35, 정보대:40, 인공지능학과:38, 코딩테스트:55, 백준:52, 프로젝트:35, 밤샘:28,
+        도서관:25, 스터디룸:28, 개강:22, 종강:24, 중간고사:30, 기말고사:32, 실습:45, 랩:30,
+        교수님:50, 박채용:96, 이도길:96, 김승태:96
+      },
+      "파이썬": {
+        코딩:87, 프로그래밍:80, 자료구조:45, 알고리즘:50, pandas:85, numpy:62, jupyter:55,
+        데이터분석:68, 크롤링:58, 자동화:55, 라이브러리:60, 문법:65, 반복문:62, 조건문:60,
+        함수:58, 클래스:52, 객체지향:50, 딥러닝:55, 머신러닝:58, 인공지능:52, 텐서플로:50,
+        파이토치:50, 코딩테스트:48, 백준:45, "VS코드":55, 아나콘다:52, 설치:30, 에러:35,
+        디버깅:38, 초보:40, 입문:45, 강의:35, 과제:32, 실습:45, 개발자:40, 스크립트:48,
+        코드:60, 개발:45, 컴퓨터:40, 프로젝트:38, 웹크롤러:50, 데이터사이언스:55, 통계:42,
+        학과:30, 인공지능학과:38, 조교:28, 시험:22, 전공필수:35, 노트북:25, "컴퓨터프로그래밍":96
+      },
+      "전산수학": {
+        수학:75, 선형대수:78, 미적분:70, 확률:68, 통계:66, 이산수학:72, 행렬:65, 벡터:64,
+        미분:58, 적분:56, 극한:50, 함수:45, 증명:55, 논리:50, 집합:52, 조합론:58, 그래프이론:55,
+        알고리즘:40, 컴퓨터공학:42, 전공필수:65, 시험:38, 족보:40, 과제:35, 계산:50, 공식:55,
+        연산:52, 확률변수:55, 정규분포:48, 행렬식:50, 고유값:45, 벡터공간:48, 학점:32, 조교:38,
+        강의:35, 밤샘:25, 인공지능학과:35, 딥러닝:38, 머신러닝:38, 교수님:48, 중간고사:34,
+        기말고사:36, 이론:38, 공대:25, 이현철:96, 박중석:96, 이중실:96
+      },
+      "1905": {
+        개교:90, 보성전문학교:85, 설립:75, 역사:60, 전통:65, 개교기념일:70, 창립:68,
+        유서깊은:50, 사학:55, 명문대:45, 역사관:40, 박물관:38, 보성:80, 전문학교:78,
+        근대교육:42, 민족대학:60, 민족:45, 안암:30, 개교기념:72, 자주독립:38, 항일:35,
+        고려대역사:58, 개교년도:76, 창학이념:44, 자유정의진리:40, 연도:70, "1946":90, 고려대:67
+      },
+      "챗GPT": {
+        GPT:92, 챗봇:90, OpenAI:88, Gemini:93, 언어모델:78, LLM:76, "AI비서":60, 인공지능:80,
+        AI:82, "대화형AI":75, 자연어처리:60, 텍스트생성:58, 프롬프트:55, 인공지능챗봇:70,
+        딥러닝:45, 머신러닝:44, 코딩도우미:50, 과제도우미:48, 리포트:40, 자동완성:38,
+        대화:45, 질문:32, 답변:34, 인공지능기술:42, 클로드:30
+      },
+      "고대빵": {
+        빵:85, 카스테라:70, 크림빵:65, 단팥빵:60, 굿즈빵:55, 캐릭터빵:58, 호랑이빵:75,
+        기념품:50, 선물:45, 학교굿즈:48, 빵집:80, 베이커리:93, 정문:30, 매점:40, 편의점:35,
+        답례품:38, 졸업선물:36, 신입생선물:34, 카페:25, 디저트:42, 간식:44, 빵맛집:60,
+        필수템:50, 인기템:48, "sns맛집":44, 인스타핫플:40
+      },
+      "KUPID": {
+        고려대시스템:70, 학사정보:79, 통합정보시스템:83, 포털사이트:90, 학교포털:65,
+        수강신청:72, 성적조회:60, 시간표조회:58, 학사행정:55, 학교시스템:68, 로그인:40,
+        학번:45, 비밀번호:35, 등록:50, 휴학신청:48, 졸업요건:52, 강의계획서:56,
+        온라인시스템:62, 학교사이트:64, 인트라넷:58, 캠퍼스포털:66, 학적:46, 성적표:50,
+        수강정정:54, 학사일정:53, 포털:80
+      },
+      "하나은행": {
+        등록금인상:70, 카드:75, 등록금납부:82, 제휴은행:95, 은행:88, 계좌:80, 등록금:78,
+        학교은행:90, 학생증:52, 체크카드:70, 통장:75, 계좌이체:72, 등록금고지서:76,
+        학자금대출:54, 은행앱:68, 하나원큐:68, 신용카드:68, ATM:55, 은행창구:60, 지점:50,
+        학교제휴카드:82, 캠퍼스카드:74, 등록금분납:64
+      }
+    },
+    hints: {
+      "호랑이":  {상징:70, 마스코트:85, 김종국:95},
+      "크림슨":  {고려대:75, 과잠:90, 색깔:97},
+      "입실렌티": {콘서트:72, 봄축제:80, 응원단:83, 녹지운동장:93},
+      "고연전":  {라이벌:80, 축구:89, 아이스하키:90, 농구:91, 야구:92},
+      "자료구조": {큐:76, 트리:80, 박채용:96, 이도길:96, 김승태:96},
+      "파이썬":  {pandas:85, 코딩:87, "컴퓨터프로그래밍":96},
+      "전산수학": {이산수학:72, 선형대수:78, 이현철:96, 박중석:96, 이중실:96},
+      "1905":  {고려대:67, 연도:70, 설립:75, 보성전문학교:85, "1946":90},
+      "챗GPT":  {LLM:76, OpenAI:88, 챗봇:90, Gemini:93},
+      "고대빵":  {카스테라:70, 호랑이빵:75, 빵집:80, 베이커리:93},
+      "KUPID":  {고려대시스템:70, 학사정보:79, 통합정보시스템:83, 포털사이트:90},
+      "하나은행": {등록금인상:70, 카드:75, 등록금납부:82, 제휴은행:95}
+    },
+    aliases: {
+      "챗GPT": ["챗지피티", "ChatGPT", "chatgpt", "챗GPT"],
+      "KUPID": ["쿠피드", "Kupid", "kupid"]
+    }
+  }
+};
+
+/* 목록에 없는 단어는 완전 랜덤이 아니라, 단어 글자를 이용한
+   "고정된 의사난수"로 -25~20 사이 점수를 줘서 매번 같은 결과가
+   나오도록 합니다 (그래야 게임이 재현 가능함). */
+function hashScore(word, answer){
+  let h = 0;
+  const s = word + "::" + answer;
+  for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; }
+  return (h % 46) - 25;
+}
+
+/* 공백 차이를 무시하기 위한 정규화 함수 (예: "컴퓨터 구조" == "컴퓨터구조") */
+function normalizeWord(s){
+  return s.replace(/\s+/g, '');
+}
+
+/* 점수 계산 우선순위 (공백은 전부 무시하고 비교함):
+   1) 정답과 완전히 같으면 100
+   2) 표에 정확히 있는 단어면 그 점수
+   3) 정답 단어의 일부이거나(예: "크림" → "크림슨") 정답 단어를 포함하면
+      → 65~95점 사이로 계산 (겹치는 비율에 따라, 최대한 후하게)
+   4) 표에 있는 다른 단어의 일부이거나 그 단어를 포함하면(예: "정보대학교" → "정보대")
+      → 그 단어 점수의 85%
+   5) 위 어디에도 안 걸리면 고정 의사난수 (-25~20) */
+function scoreGuess(word, table, answer){
+  const normWord = normalizeWord(word);
+  const normAnswer = normalizeWord(answer);
+
+  for(const [key, val] of Object.entries(table)){
+    if(normalizeWord(key) === normWord) return val;
+  }
+
+  if(normWord.length >= 2 && normAnswer.length >= 2 && (normAnswer.includes(normWord) || normWord.includes(normAnswer))){
+    const ratio = Math.min(normWord.length, normAnswer.length) / Math.max(normWord.length, normAnswer.length);
+    return Math.round(65 + ratio * 30);
+  }
+
+  let bestPartial = null;
+  for(const [key, val] of Object.entries(table)){
+    const normKey = normalizeWord(key);
+    if(normKey.length < 2 || normWord.length < 2) continue;
+    if(normWord.includes(normKey) || normKey.includes(normWord)){
+      if(bestPartial === null || val > bestPartial) bestPartial = val;
+    }
+  }
+  if(bestPartial !== null){
+    return Math.max(0, Math.round(bestPartial * 0.85));
+  }
+
+  return hashScore(word, answer);
+}
+
+/* 힌트 공개 순서: HINTS 테이블(70점 이상만 들어있음)을 점수 오름차순으로
+   정렬해서, 낮은 점수부터 하나씩 순서대로 공개합니다. */
+function buildHintSequence(hintTable){
+  return Object.entries(hintTable).sort((a,b)=>a[1]-b[1]).map(e => e[0]);
+}
+
+let state = null;
+const HINT_BTN_DEFAULT_TEXT = '🔦 힌트 요청 (-150점)';
+let hintFlashTimeout = null;
+
+const setupNote = document.getElementById('setupNote');
+const wordsetSelect = document.getElementById('wordsetSelect');
+let currentStage = 'stage1';
+
+function refreshWordsetOptions(){
+  wordsetSelect.innerHTML = '';
+  const sets = DATA[currentStage].sets;
+  Object.keys(sets).forEach((key, idx)=>{
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = `단어 세트 ${idx+1} (정답: ${key})`;
+    wordsetSelect.appendChild(opt);
+  });
+  const cfg = DATA[currentStage];
+  setupNote.textContent = cfg.timeLimitSec
+    ? `제한시간 ${cfg.timeLimitSec/60}분, 최대 시도 ${cfg.tryLimit}회 — 초과 시 실패(0점) 처리됩니다.`
+    : `워밍업 단계는 시간/횟수 제한이 없습니다.`;
+}
+refreshWordsetOptions();
+
+document.querySelectorAll('.stage-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.stage-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentStage = btn.dataset.stage;
+    refreshWordsetOptions();
+  });
+});
+
+document.getElementById('startBtn').addEventListener('click', startRound);
+
+let timerInterval = null;
+
+function startRound(){
+  const stageCfg = DATA[currentStage];
+  const answer = wordsetSelect.value;
+  const table = stageCfg.sets[answer];
+  const hintTable = stageCfg.hints[answer];
+  const winAliases = (stageCfg.aliases && stageCfg.aliases[answer]) || [];
+
+  state = {
+    stage: currentStage,
+    answer,
+    table,
+    winAliases,
+    tries: 0,
+    hints: 0,
+    hintSequence: buildHintSequence(hintTable),
+    hintSeqIndex: 0,
+    hintTable,
+    guesses: [],
+    startTime: Date.now(),
+    timeLimitSec: stageCfg.timeLimitSec,
+    tryLimit: stageCfg.tryLimit,
+    finished: false
+  };
+
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('end').classList.remove('on');
+  document.getElementById('game').classList.add('on');
+  document.getElementById('giveupConfirm').style.display = 'none';
+  document.getElementById('stageLabel').textContent = currentStage === 'stage1' ? '1단계' : '2단계';
+  document.getElementById('transcriptBody').innerHTML = '<div class="empty-transcript">아직 검색한 단어가 없습니다.</div>';
+  document.getElementById('bestPct').textContent = '0%';
+  document.getElementById('meterFill').style.width = '0%';
+  document.getElementById('triesVal').textContent = '0';
+  document.getElementById('hintsVal').textContent = '0';
+  document.getElementById('guessInput').value = '';
+  document.getElementById('guessInput').focus();
+
+  if(hintFlashTimeout){ clearTimeout(hintFlashTimeout); hintFlashTimeout = null; }
+  const hintBtnEl = document.getElementById('hintBtn');
+  hintBtnEl.textContent = HINT_BTN_DEFAULT_TEXT;
+  hintBtnEl.classList.remove('hint-flash');
+
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 250);
+  updateTimer();
+}
+
+function updateTimer(){
+  if(!state || state.finished) return;
+  const elapsedSec = (Date.now() - state.startTime) / 1000;
+  const timeVal = document.getElementById('timeVal');
+
+  if(state.timeLimitSec){
+    const remain = Math.max(0, state.timeLimitSec - elapsedSec);
+    timeVal.textContent = fmtTime(remain);
+    timeVal.classList.toggle('warn', remain <= 20);
+    if(remain <= 0){
+      endRound('fail_time');
+    }
+  } else {
+    timeVal.textContent = fmtTime(elapsedSec);
+  }
+}
+
+function fmtTime(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60).toString().padStart(2,'0');
+  const s = (sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function submitGuess(){
+  if(!state || state.finished) return;
+  const input = document.getElementById('guessInput');
+  const word = input.value.trim();
+  if(!word) return;
+  input.value = '';
+
+  state.tries++;
+  document.getElementById('triesVal').textContent = state.tries;
+
+  let score;
+  let isWin = false;
+
+  const normInput = normalizeWord(word);
+  if(normInput === normalizeWord(state.answer) || state.winAliases.some(a => normalizeWord(a) === normInput)){
+    score = 100;
+    isWin = true;
+  } else {
+    score = scoreGuess(word, state.table, state.answer);
+  }
+
+  state.guesses.push({word, score, isHint:false, isWin});
+  renderTranscript();
+  updateBest();
+
+  if(isWin){
+    endRound('success');
+    return;
+  }
+
+  if(state.tryLimit && state.tries >= state.tryLimit){
+    endRound('fail_tries');
+  }
+}
+
+function flashSearchButton(){
+  const btn = document.getElementById('searchBtn');
+  btn.classList.add('pressed');
+  setTimeout(()=> btn.classList.remove('pressed'), 140);
+}
+
+document.getElementById('searchBtn').addEventListener('click', ()=>{
+  flashSearchButton();
+  submitGuess();
+});
+
+document.getElementById('guessInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    flashSearchButton();
+    submitGuess();
+  }
+});
+
+document.getElementById('hintBtn').addEventListener('click', ()=>{
+  if(!state || state.finished) return;
+  const guessedWords = new Set(state.guesses.map(g=>g.word));
+
+  let next = null;
+  while(state.hintSeqIndex < state.hintSequence.length){
+    const candidate = state.hintSequence[state.hintSeqIndex];
+    state.hintSeqIndex++;
+    if(!guessedWords.has(candidate)){
+      next = candidate;
+      break;
+    }
+  }
+
+  if(!next){
+    const btn = document.getElementById('hintBtn');
+    if(hintFlashTimeout) clearTimeout(hintFlashTimeout);
+    btn.textContent = '❌ 더 이상 힌트가 없습니다';
+    btn.classList.add('hint-flash');
+    hintFlashTimeout = setTimeout(()=>{
+      btn.textContent = HINT_BTN_DEFAULT_TEXT;
+      btn.classList.remove('hint-flash');
+      hintFlashTimeout = null;
+    }, 1500);
+    return;
+  }
+  state.hints++;
+  document.getElementById('hintsVal').textContent = state.hints;
+  state.guesses.push({word: next, score: state.hintTable[next], isHint:true, isWin:false});
+  renderTranscript();
+  updateBest();
+});
+
+document.getElementById('giveupBtn').addEventListener('click', ()=>{
+  if(!state || state.finished) return;
+  document.getElementById('giveupConfirm').style.display = 'block';
+});
+
+document.getElementById('giveupNo').addEventListener('click', ()=>{
+  document.getElementById('giveupConfirm').style.display = 'none';
+});
+
+document.getElementById('giveupYes').addEventListener('click', ()=>{
+  document.getElementById('giveupConfirm').style.display = 'none';
+  endRound('fail_giveup');
+});
+
+function updateBest(){
+  const best = state.guesses.length ? Math.max(...state.guesses.map(g=>g.score)) : 0;
+  const clamped = Math.max(0, Math.min(100, best));
+  document.getElementById('bestPct').textContent = `${Math.max(0,best)}%`;
+  document.getElementById('meterFill').style.width = clamped + '%';
+}
+
+function renderTranscript(){
+  const body = document.getElementById('transcriptBody');
+  const sorted = [...state.guesses].sort((a,b)=>b.score - a.score);
+  body.innerHTML = '';
+  sorted.forEach(g=>{
+    const row = document.createElement('div');
+    row.className = 't-row' + (g.isWin ? ' hit' : '') + (g.isHint ? ' hint-row' : '');
+    row.innerHTML = `<span class="word">${g.isHint ? '💡 ' : ''}${escapeHtml(g.word)}</span><span class="score">${g.score}%</span>`;
+    body.appendChild(row);
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function endRound(result){
+  state.finished = true;
+  clearInterval(timerInterval);
+
+  const elapsedSec = (Date.now() - state.startTime) / 1000;
+  document.getElementById('game').classList.remove('on');
+  const endEl = document.getElementById('end');
+  endEl.classList.add('on');
+
+  if(state.stage === 'stage1'){
+    const isGiveup = (result === 'fail_giveup');
+    document.getElementById('endHeader').textContent = isGiveup ? '// 워밍업 포기' : '// 워밍업 종료';
+    document.getElementById('gradeChar').className = 'grade ' + (result === 'success' ? 'A' : 'F');
+    document.getElementById('gradeChar').textContent = result === 'success' ? 'CLEAR' : (isGiveup ? '포기' : 'END');
+    document.getElementById('scoreLine').textContent = `시도 ${state.tries}회 · ${fmtTime(elapsedSec)} 소요`;
+    document.getElementById('breakdown').innerHTML = isGiveup
+      ? `포기하셨습니다! 다음 참가자를 준비해주세요.`
+      : `워밍업은 채점하지 않습니다. 참가자에게 2단계(랭킹전) 규칙을 안내해주세요.`;
+    document.getElementById('rewardLine').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('rewardLine').style.display = 'block';
+
+  let score = 0;
+  let failed = (result !== 'success');
+
+  if(!failed){
+    score = Math.max(0, Math.round(
+      1000 - (state.tries * 60) - (elapsedSec * 2.5) - (state.hints * 60)
+    ));
+  }
+  if(elapsedSec > 180 || state.tries > 15){
+    failed = true; score = 0;
+  }
+
+  let grade, gradeClass, rewardText;
+  if(result === 'fail_giveup'){
+    grade = '포기'; gradeClass = 'F';
+    rewardText = '🚩 포기하셨습니다! 다음 기회에 다시 도전해보세요.';
+  } else if(failed){
+    grade = '실패'; gradeClass = 'F';
+    rewardText = '안타깝네요 — 다음 기회에 다시 도전해보세요.';
+  } else if(score >= 800 && state.tries <= 5){
+    grade = 'S'; gradeClass = 'S';
+    rewardText = '🏆 S등급 — 배민 5천원 상품권';
+  } else if(score >= 600 && state.tries <= 10){
+    grade = 'A'; gradeClass = 'A';
+    rewardText = '🥈 A등급 — 배민 2천원 상품권';
+  } else if(score >= 1 && state.tries <= 15){
+    grade = 'B'; gradeClass = 'B';
+    rewardText = '🎖️ B등급 — 따봉 칭찬';
+  } else {
+    grade = '실패'; gradeClass = 'F';
+    rewardText = '안타깝네요 — 다음 기회에 다시 도전해보세요.';
+  }
+
+  document.getElementById('endHeader').textContent = (result === 'fail_giveup') ? '// 포기 접수' : '// 심문 종료 — 결과 보고서';
+  document.getElementById('gradeChar').className = 'grade ' + gradeClass;
+  document.getElementById('gradeChar').textContent = grade;
+  document.getElementById('scoreLine').textContent = `SCORE ${score}`;
+  document.getElementById('breakdown').innerHTML = `
+    정답 단어 &nbsp;: <b>${escapeHtml(state.answer)}</b><br>
+    시도 횟수 &nbsp;: <b>${state.tries}회</b> (-${state.tries*60}점)<br>
+    소요 시간 &nbsp;: <b>${fmtTime(elapsedSec)}</b> (-${Math.round(elapsedSec*2.5)}점)<br>
+    힌트 사용 &nbsp;: <b>${state.hints}회</b> (-${state.hints*60}점)
+  `;
+  document.getElementById('rewardLine').textContent = rewardText;
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  document.getElementById('end').classList.remove('on');
+  document.getElementById('setup').style.display = 'block';
+  refreshWordsetOptions();
+});
+</script>
+
+</body>
+</html>
